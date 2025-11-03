@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+/* Modo claro */
+html.light {
+  color-scheme: light;
+}
+
+html.light body {
+  @apply bg-white text-gray-900;
+}
+
+html.light .card {
+  @apply bg-white border-gray-200 shadow-lg;
+}
+
+html.light .input {
+  @apply bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-200;
+}
+
+html.light .label {
+  @apply text-gray-700;
+}
+
+html.light .btn-primary {
+  @apply bg-blue-600 text-white hover:bg-blue-700 border-blue-600;
+}
+
+/* Navbar modo claro */
+html.light nav {
+  @apply bg-white/90 border-gray-200 shadow-md;
+}
+
+html.light nav a,
+html.light nav button {
+  @apply text-gray-700 hover:text-gray-900;
+}
+
+/* Textos generales en modo claro */
+html.light h1,
+html.light h2,
+html.light h3,
+html.light h4,
+html.light h5,
+html.light h6 {
+  @apply text-gray-900;
+}
+
+html.light p {
+  @apply text-gray-700;
+}
+
+/* Links en modo claro - solo aplica a links sin clases de color específicas */
+html.light a:not([class*="text-"]):not([class*="bg-"]) {
+  @apply text-blue-600 hover:text-blue-700;
+}
+
+/* Botones en modo claro */
+html.light button {
+  @apply text-gray-700;
+}
+
+/* Scrollbar en modo claro */
+html.light ::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 hover:bg-gray-400;
+}
+
+body {
+  @apply bg-black text-white transition-colors duration-300;
+}
+
+.container {
+  @apply mx-auto max-w-6xl px-4;
+}
+
+.card {
+  @apply rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 shadow-2xl;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center rounded-xl border px-4 py-2 text-sm font-medium transition-all duration-200;
+}
+
+.btn-primary {
+  @apply bg-white text-black hover:bg-white/90 border-white/20;
+}
+
+.input {
+  @apply w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-white placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/20 backdrop-blur-xl;
+}
+
+.label {
+  @apply mb-2 block text-sm font-medium text-white/80;
+}
+
+/* Estilo Apple para glassmorphism */
+.glass {
+  @apply bg-white/10 backdrop-blur-2xl border border-white/20;
+}
+
+.glass-dark {
+  @apply bg-black/40 backdrop-blur-2xl border border-white/10;
+}
+
+/* Animaciones suaves estilo Apple */
+* {
+  @apply transition-colors duration-200;
+}
+
+/* Scrollbar estilo Apple */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-white/20 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-white/30;
+}

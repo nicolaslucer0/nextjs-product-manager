@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "node:fs/promises";
-import path from "node:path";
-import { existsSync } from "node:fs";
+import { uploadToCloudinary } from "@/lib/cloudinary";
+import sharp from "sharp";
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,29 +44,35 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Crear nombre único para el archivo
-    const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(7);
-    const extension = file.name.split(".").pop();
-    const filename = `${timestamp}-${randomString}.${extension}`;
+    // Comprimir imagen con sharp
+    // Convierte a WebP (mejor compresión), redimensiona a máximo 1920x1920 y optimiza calidad
+    const compressedBuffer = await sharp(buffer)
+      .resize(1920, 1920, {
+        fit: "inside", // Mantiene aspect ratio
+        withoutEnlargement: true, // No agranda imágenes pequeñas
+      })
+      .webp({ quality: 85 }) // Convierte a WebP con 85% de calidad
+      .toBuffer();
 
-    // Crear directorio si no existe
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
+    console.log(
+      `Imagen comprimida: ${Math.round(buffer.length / 1024)}KB → ${Math.round(
+        compressedBuffer.length / 1024
+      )}KB (${Math.round(
+        (1 - compressedBuffer.length / buffer.length) * 100
+      )}% reducción)`
+    );
 
-    // Guardar archivo
-    const filepath = path.join(uploadDir, filename);
-    await writeFile(filepath, buffer);
-
-    // Retornar URL pública
-    const publicUrl = `/uploads/${filename}`;
+    // Subir a Cloudinary
+    const { url, publicId } = await uploadToCloudinary(
+      compressedBuffer,
+      "product-manager/products"
+    );
 
     return NextResponse.json({
       success: true,
-      url: publicUrl,
-      filename: filename,
+      url: url,
+      publicId: publicId,
+      filename: publicId.split("/").pop() || "image",
     });
   } catch (error) {
     console.error("Error al subir archivo:", error);

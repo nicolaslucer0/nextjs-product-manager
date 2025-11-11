@@ -117,7 +117,9 @@ export default function AdminDashboard({ products, users, stats }: Props) {
               onChange={(e) => setActiveTab(e.target.value as any)}
               className="w-full card py-3 px-4 text-white bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
-              <option value="products">📦 Productos ({stats.totalProducts})</option>
+              <option value="products">
+                📦 Productos ({stats.totalProducts})
+              </option>
               {isAdmin && (
                 <option value="users">👥 Usuarios ({stats.totalUsers})</option>
               )}
@@ -388,7 +390,9 @@ export default function AdminDashboard({ products, users, stats }: Props) {
           <div className="space-y-6">
             {/* Create/Edit Product Button */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <h2 className="text-xl sm:text-2xl font-bold">Gestión de Productos</h2>
+              <h2 className="text-xl sm:text-2xl font-bold">
+                Gestión de Productos
+              </h2>
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                 <button
                   onClick={async () => {

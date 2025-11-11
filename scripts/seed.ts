@@ -1,3 +1,7 @@
+// Cargar variables de entorno PRIMERO, antes de cualquier otro import
+import { config } from "dotenv";
+config({ path: ".env.local" });
+
 import { connectDB } from "@/lib/db";
 import User from "@/lib/models/User";
 import Product from "@/lib/models/Product";

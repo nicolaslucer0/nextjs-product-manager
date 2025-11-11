@@ -108,62 +108,82 @@ export default function AdminDashboard({ products, users, stats }: Props) {
           </p>
         </div>
 
-        {/* Tabs */}
-        <div className="mb-6 border-b border-white/10">
-          <nav className="flex gap-8">
-            <button
-              onClick={() => setActiveTab("products")}
-              className={`pb-4 px-1 border-b-2 font-medium transition-colors ${
-                activeTab === "products"
-                  ? "border-blue-400 text-blue-400"
-                  : "border-transparent text-white/50 hover:text-white/70"
-              }`}
+        {/* Tabs - Responsive */}
+        <div className="mb-6">
+          {/* Mobile: Dropdown */}
+          <div className="sm:hidden">
+            <select
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value as any)}
+              className="w-full card py-3 px-4 text-white bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
-              📦 Productos ({stats.totalProducts})
-            </button>
-            {isAdmin && (
+              <option value="products">📦 Productos ({stats.totalProducts})</option>
+              {isAdmin && (
+                <option value="users">👥 Usuarios ({stats.totalUsers})</option>
+              )}
+              <option value="social">🌐 Redes Sociales</option>
+              <option value="import">📥 Importar Excel</option>
+              <option value="overview">📊 Resumen</option>
+            </select>
+          </div>
+
+          {/* Desktop: Horizontal Tabs */}
+          <div className="hidden sm:block border-b border-white/10">
+            <nav className="flex gap-4 lg:gap-8 overflow-x-auto scrollbar-hide">
               <button
-                onClick={() => setActiveTab("users")}
-                className={`pb-4 px-1 border-b-2 font-medium transition-colors ${
-                  activeTab === "users"
+                onClick={() => setActiveTab("products")}
+                className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap text-sm lg:text-base ${
+                  activeTab === "products"
                     ? "border-blue-400 text-blue-400"
                     : "border-transparent text-white/50 hover:text-white/70"
                 }`}
               >
-                👥 Usuarios ({stats.totalUsers})
+                📦 Productos ({stats.totalProducts})
               </button>
-            )}
-            <button
-              onClick={() => setActiveTab("social")}
-              className={`pb-4 px-1 border-b-2 font-medium transition-colors ${
-                activeTab === "social"
-                  ? "border-blue-400 text-blue-400"
-                  : "border-transparent text-white/50 hover:text-white/70"
-              }`}
-            >
-              🌐 Redes Sociales
-            </button>
-            <button
-              onClick={() => setActiveTab("import")}
-              className={`pb-4 px-1 border-b-2 font-medium transition-colors ${
-                activeTab === "import"
-                  ? "border-blue-400 text-blue-400"
-                  : "border-transparent text-white/50 hover:text-white/70"
-              }`}
-            >
-              📥 Importar Excel
-            </button>
-            <button
-              onClick={() => setActiveTab("overview")}
-              className={`pb-4 px-1 border-b-2 font-medium transition-colors ${
-                activeTab === "overview"
-                  ? "border-blue-400 text-blue-400"
-                  : "border-transparent text-white/50 hover:text-white/70"
-              }`}
-            >
-              📊 Resumen
-            </button>
-          </nav>
+              {isAdmin && (
+                <button
+                  onClick={() => setActiveTab("users")}
+                  className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap text-sm lg:text-base ${
+                    activeTab === "users"
+                      ? "border-blue-400 text-blue-400"
+                      : "border-transparent text-white/50 hover:text-white/70"
+                  }`}
+                >
+                  👥 Usuarios ({stats.totalUsers})
+                </button>
+              )}
+              <button
+                onClick={() => setActiveTab("social")}
+                className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap text-sm lg:text-base ${
+                  activeTab === "social"
+                    ? "border-blue-400 text-blue-400"
+                    : "border-transparent text-white/50 hover:text-white/70"
+                }`}
+              >
+                🌐 Redes Sociales
+              </button>
+              <button
+                onClick={() => setActiveTab("import")}
+                className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap text-sm lg:text-base ${
+                  activeTab === "import"
+                    ? "border-blue-400 text-blue-400"
+                    : "border-transparent text-white/50 hover:text-white/70"
+                }`}
+              >
+                📥 Importar Excel
+              </button>
+              <button
+                onClick={() => setActiveTab("overview")}
+                className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap text-sm lg:text-base ${
+                  activeTab === "overview"
+                    ? "border-blue-400 text-blue-400"
+                    : "border-transparent text-white/50 hover:text-white/70"
+                }`}
+              >
+                📊 Resumen
+              </button>
+            </nav>
+          </div>
         </div>
 
         {/* Overview Tab */}
@@ -367,9 +387,9 @@ export default function AdminDashboard({ products, users, stats }: Props) {
         {activeTab === "products" && (
           <div className="space-y-6">
             {/* Create/Edit Product Button */}
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Gestión de Productos</h2>
-              <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h2 className="text-xl sm:text-2xl font-bold">Gestión de Productos</h2>
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                 <button
                   onClick={async () => {
                     if (
@@ -402,11 +422,11 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                       alert(`❌ Error al eliminar productos: ${error}`);
                     }
                   }}
-                  className="btn bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 text-red-400 flex items-center gap-2"
+                  className="btn bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 text-red-400 flex items-center justify-center gap-2 text-sm sm:text-base"
                   title="Eliminar todos los productos de la base de datos"
                 >
                   <svg
-                    className="w-5 h-5"
+                    className="w-4 h-4 sm:w-5 sm:h-5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -418,14 +438,15 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                       d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                     />
                   </svg>
-                  Eliminar Todos
+                  <span className="hidden sm:inline">Eliminar Todos</span>
+                  <span className="sm:hidden">Eliminar Todo</span>
                 </button>
                 <button
                   onClick={() => {
                     setShowCreateProduct(!showCreateProduct);
                     setEditingProduct(null);
                   }}
-                  className="btn btn-primary flex items-center gap-2"
+                  className="btn btn-primary flex items-center justify-center gap-2 text-sm sm:text-base"
                 >
                   {showCreateProduct || editingProduct ? (
                     <>

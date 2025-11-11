@@ -127,3 +127,13 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-white/30;
 }
+
+/* Ocultar scrollbar pero mantener funcionalidad */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

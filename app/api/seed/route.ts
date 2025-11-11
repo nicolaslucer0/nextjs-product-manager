@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     const adminUser = await User.create({
       name: "Admin",
       email: process.env.SEED_ADMIN_EMAIL || "admin@neotech.com",
-      password: hashedPassword,
+      passwordHash: hashedPassword,
       role: "ADMIN",
       active: true,
     });

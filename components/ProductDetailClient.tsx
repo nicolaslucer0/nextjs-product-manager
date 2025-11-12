@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTheme } from "@/contexts/ThemeContext";
 import { formatPrice } from "@/lib/utils";
@@ -14,6 +14,29 @@ export default function ProductDetailClient({ product }: Props) {
   const { theme } = useTheme();
   const [selectedImage, setSelectedImage] = useState(product.images?.[0] || "");
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
+  const [warrantyMessage, setWarrantyMessage] = useState("Garantía de 30 días");
+
+  // Cargar mensaje de garantía según la categoría
+  useEffect(() => {
+    const loadWarrantyMessage = async () => {
+      if (!product.category) return;
+      
+      try {
+        const response = await fetch("/api/category-config");
+        if (response.ok) {
+          const configs = await response.json();
+          const config = configs.find((c: { category: string }) => c.category === product.category);
+          if (config && config.warrantyMessage) {
+            setWarrantyMessage(config.warrantyMessage);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading warranty message:", error);
+      }
+    };
+
+    loadWarrantyMessage();
+  }, [product.category]);
 
   // Agrupar variantes por tipo
   const colorVariants =
@@ -265,7 +288,7 @@ export default function ProductDetailClient({ product }: Props) {
                 Información del producto
               </h4>
               <ul className="space-y-1 text-sm text-blue-300">
-                <li>• Garantía de 30 días</li>
+                <li>• {warrantyMessage}</li>
               </ul>
             </div>
 

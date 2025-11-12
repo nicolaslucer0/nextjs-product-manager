@@ -6,6 +6,7 @@ import ProductForm from "./ProductForm";
 import UserManagement from "./UserManagement";
 import SocialLinksManager from "./SocialLinksManager";
 import ProductImporter from "./ProductImporter";
+import CategoryConfigManager from "./CategoryConfigManager";
 import { deleteProduct } from "@/app/admin/actions";
 import { deleteAllProducts } from "@/app/admin/deleteAllActions";
 import { toggleFeatured } from "@/app/admin/featuredActions";
@@ -63,7 +64,7 @@ export default function AdminDashboard({ products, users, stats }: Props) {
   const { theme } = useTheme();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<
-    "overview" | "products" | "users" | "social" | "import"
+    "overview" | "products" | "users" | "social" | "import" | "config"
   >("products");
   const [showCreateProduct, setShowCreateProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -125,6 +126,7 @@ export default function AdminDashboard({ products, users, stats }: Props) {
               )}
               <option value="social">🌐 Redes Sociales</option>
               <option value="import">📥 Importar Excel</option>
+              <option value="config">⚙️ Configuración</option>
               <option value="overview">📊 Resumen</option>
             </select>
           </div>
@@ -173,6 +175,16 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                 }`}
               >
                 📥 Importar Excel
+              </button>
+              <button
+                onClick={() => setActiveTab("config")}
+                className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap text-sm lg:text-base ${
+                  activeTab === "config"
+                    ? "border-blue-400 text-blue-400"
+                    : "border-transparent text-white/50 hover:text-white/70"
+                }`}
+              >
+                ⚙️ Configuración
               </button>
               <button
                 onClick={() => setActiveTab("overview")}
@@ -847,6 +859,13 @@ export default function AdminDashboard({ products, users, stats }: Props) {
         {activeTab === "import" && (
           <div className="space-y-6">
             <ProductImporter />
+          </div>
+        )}
+
+        {/* Config Tab */}
+        {activeTab === "config" && (
+          <div className="space-y-6">
+            <CategoryConfigManager categories={categories as string[]} />
           </div>
         )}
       </div>

@@ -14,7 +14,7 @@ export default function ProductDetailClient({ product }: Props) {
   const { theme } = useTheme();
   const [selectedImage, setSelectedImage] = useState(product.images?.[0] || "");
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
-  const [warrantyMessage, setWarrantyMessage] = useState("Garantía de 30 días");
+  const [warrantyMessage, setWarrantyMessage] = useState("");
 
   // Cargar mensaje de garantía según la categoría
   useEffect(() => {
@@ -285,14 +285,16 @@ export default function ProductDetailClient({ product }: Props) {
             )}
 
             {/* Información adicional */}
-            <div className="bg-blue-500/10 border border-blue-400/30 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-400 mb-2">
-                Información del producto
-              </h4>
-              <ul className="space-y-1 text-sm text-blue-300">
-                <li>• {warrantyMessage}</li>
-              </ul>
-            </div>
+            {warrantyMessage && (
+              <div className="bg-blue-500/10 border border-blue-400/30 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-400 mb-2">
+                  Información del producto
+                </h4>
+                <ul className="space-y-1 text-sm text-blue-300">
+                  <li>{warrantyMessage}</li>
+                </ul>
+              </div>
+            )}
 
             {/* Detalles técnicos */}
             {product.variants && product.variants.length > 0 && (

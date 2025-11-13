@@ -43,7 +43,7 @@ export default function CategoryConfigManager({ categories }: Props) {
   const handleEdit = (category: string) => {
     const config = configs.find((c) => c.category === category);
     setEditingCategory(category);
-    setWarrantyMessage(config?.warrantyMessage || "Garantía de 30 días");
+    setWarrantyMessage(config?.warrantyMessage || "");
   };
 
   const handleSave = async (category: string) => {
@@ -157,8 +157,7 @@ export default function CategoryConfigManager({ categories }: Props) {
                           theme === "light" ? "text-gray-600" : "text-white/60"
                         }`}
                       >
-                        {config?.warrantyMessage ||
-                          "Garantía de 30 días (predeterminado)"}
+                        {config?.warrantyMessage || ""}
                       </p>
                     )}
                   </div>

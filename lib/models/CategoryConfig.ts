@@ -2,7 +2,7 @@ import { Schema, model, models } from "mongoose";
 
 const CategoryConfigSchema = new Schema({
   category: { type: String, required: true, unique: true },
-  warrantyMessage: { type: String, default: "Garantía de 30 días" },
+  warrantyMessage: { type: String, default: "" },
   updatedAt: { type: Date, default: Date.now },
 });
 

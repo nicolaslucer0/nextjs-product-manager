@@ -16,6 +16,7 @@ type Product = {
   _id?: string;
   title: string;
   description: string;
+  category?: string;
   price: number;
   stock: number;
   images: string[];
@@ -25,11 +26,17 @@ type Product = {
 type Props = {
   readonly product?: Product | null;
   readonly onSuccess?: () => void;
+  readonly categories?: string[];
 };
 
-export default function ProductForm({ product, onSuccess }: Props) {
+export default function ProductForm({
+  product,
+  onSuccess,
+  categories = [],
+}: Props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
   const [price, setPrice] = useState<number>(0);
   const [stock, setStock] = useState<number>(0);
   const [images, setImages] = useState<string[]>([]);
@@ -48,6 +55,7 @@ export default function ProductForm({ product, onSuccess }: Props) {
     if (product) {
       setTitle(product.title);
       setDescription(product.description);
+      setCategory(product.category || "");
       setPrice(product.price);
       setStock(product.stock);
       setImages(product.images || []);
@@ -113,6 +121,7 @@ export default function ProductForm({ product, onSuccess }: Props) {
     const productData = {
       title,
       description,
+      category: category || undefined,
       price,
       stock,
       images,
@@ -126,7 +135,7 @@ export default function ProductForm({ product, onSuccess }: Props) {
     };
 
     const token = localStorage.getItem("token");
-    const isEditing = product && product._id;
+    const isEditing = product?._id;
     const url = isEditing ? `/api/products/${product._id}` : "/api/products";
     const method = isEditing ? "PUT" : "POST";
 
@@ -156,14 +165,14 @@ export default function ProductForm({ product, onSuccess }: Props) {
       if (onSuccess) {
         onSuccess();
       }
-      window.location.reload();
+      globalThis.location.reload();
       location.reload();
     } else {
       alert("Error al crear el producto");
     }
   }
 
-  const isEditing = product && product._id;
+  const isEditing = product?._id;
 
   return (
     <form onSubmit={submit} className="space-y-6">
@@ -187,6 +196,32 @@ export default function ProductForm({ product, onSuccess }: Props) {
           />
         </div>
         <div>
+          <label htmlFor="category" className="label">
+            Categoría
+          </label>
+          <input
+            id="category"
+            className="input"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            placeholder="Ej: Smartphones, Laptops, etc."
+            list="categories-list"
+          />
+          {categories.length > 0 && (
+            <datalist id="categories-list">
+              {categories.map((cat) => (
+                <option key={cat} value={cat} />
+              ))}
+            </datalist>
+          )}
+          <p className="text-xs text-white/50 mt-1">
+            Escribe una nueva categoría o selecciona una existente
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div>
           <label htmlFor="price" className="label">
             Precio base ($)
           </label>
@@ -199,6 +234,22 @@ export default function ProductForm({ product, onSuccess }: Props) {
             onChange={(e) => setPrice(Number(e.target.value))}
             placeholder="0.00"
           />
+        </div>
+        <div>
+          <label htmlFor="stock" className="label">
+            Stock base
+          </label>
+          <input
+            id="stock"
+            className="input"
+            type="number"
+            value={stock}
+            onChange={(e) => setStock(Number(e.target.value))}
+            placeholder="0"
+          />
+          <p className="text-xs text-white/50 mt-1">
+            Stock general (si no usas variantes)
+          </p>
         </div>
       </div>
 

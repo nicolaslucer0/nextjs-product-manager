@@ -516,6 +516,7 @@ export default function AdminDashboard({ products, users, stats }: Props) {
               <div className="card">
                 <ProductForm
                   product={editingProduct as any}
+                  categories={categories as string[]}
                   onSuccess={() => {
                     setShowCreateProduct(false);
                     setEditingProduct(null);

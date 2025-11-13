@@ -20,12 +20,14 @@ export default function ProductDetailClient({ product }: Props) {
   useEffect(() => {
     const loadWarrantyMessage = async () => {
       if (!product.category) return;
-      
+
       try {
         const response = await fetch("/api/category-config");
         if (response.ok) {
           const configs = await response.json();
-          const config = configs.find((c: { category: string }) => c.category === product.category);
+          const config = configs.find(
+            (c: { category: string }) => c.category === product.category
+          );
           if (config && config.warrantyMessage) {
             setWarrantyMessage(config.warrantyMessage);
           }

@@ -90,7 +90,8 @@ export default function CategoryConfigManager({ categories }: Props) {
           Configuración de Mensajes por Categoría
         </h3>
         <p className="text-white/60 text-sm">
-          Personaliza el mensaje de garantía que se muestra en el detalle de cada producto según su categoría.
+          Personaliza el mensaje de garantía que se muestra en el detalle de
+          cada producto según su categoría.
         </p>
       </div>
 
@@ -98,7 +99,8 @@ export default function CategoryConfigManager({ categories }: Props) {
         <div className="text-center py-12 card">
           <p className="text-white/60 mb-2">No hay categorías disponibles</p>
           <p className="text-sm text-white/40">
-            Crea productos con categorías para poder configurar mensajes personalizados
+            Crea productos con categorías para poder configurar mensajes
+            personalizados
           </p>
         </div>
       ) : (
@@ -155,7 +157,8 @@ export default function CategoryConfigManager({ categories }: Props) {
                           theme === "light" ? "text-gray-600" : "text-white/60"
                         }`}
                       >
-                        {config?.warrantyMessage || "Garantía de 30 días (predeterminado)"}
+                        {config?.warrantyMessage ||
+                          "Garantía de 30 días (predeterminado)"}
                       </p>
                     )}
                   </div>

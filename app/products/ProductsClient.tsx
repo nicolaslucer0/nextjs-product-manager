@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useTheme } from "@/contexts/ThemeContext";
 import { formatPrice } from "@/lib/utils";
 import ImagePlaceholder from "@/components/ImagePlaceholder";
+import Pagination from "@/components/Pagination";
 
 type Variant = {
   _id?: string;
@@ -38,6 +39,8 @@ export default function ProductsClient({ products }: ProductsClientProps) {
   const [inStock, setInStock] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(12);
 
   // Obtener categorías únicas
   const categories = useMemo(
@@ -111,6 +114,17 @@ export default function ProductsClient({ products }: ProductsClientProps) {
     maxPrice,
     inStock,
   ]);
+
+  // Paginación
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
+  // Reset page when filters change
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [searchTerm, categoryFilter, minPrice, maxPrice, inStock, sortBy]);
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -249,11 +263,22 @@ export default function ProductsClient({ products }: ProductsClientProps) {
               {/* Resultados */}
               <div className="mt-6 pt-4 border-t border-white/10">
                 <p className="text-sm text-white/60">
-                  Mostrando{" "}
-                  <span className="font-semibold text-white">
-                    {filteredProducts.length}
-                  </span>{" "}
-                  de {products.length} productos
+                  {filteredProducts.length > 0 ? (
+                    <>
+                      Mostrando{" "}
+                      <span className="font-semibold text-white">
+                        {startIndex + 1}-
+                        {Math.min(endIndex, filteredProducts.length)}
+                      </span>{" "}
+                      de {filteredProducts.length} producto
+                      {filteredProducts.length !== 1 ? "s" : ""}
+                      {filteredProducts.length !== products.length && (
+                        <> ({products.length} totales)</>
+                      )}
+                    </>
+                  ) : (
+                    "0 productos encontrados"
+                  )}
                 </p>
               </div>
             </div>
@@ -340,11 +365,22 @@ export default function ProductsClient({ products }: ProductsClientProps) {
                     {/* Resultados */}
                     <div className="mt-6 pt-4 border-t border-white/10">
                       <p className="text-sm text-white/60">
-                        Mostrando{" "}
-                        <span className="font-semibold text-white">
-                          {filteredProducts.length}
-                        </span>{" "}
-                        de {products.length} productos
+                        {filteredProducts.length > 0 ? (
+                          <>
+                            Mostrando{" "}
+                            <span className="font-semibold text-white">
+                              {startIndex + 1}-
+                              {Math.min(endIndex, filteredProducts.length)}
+                            </span>{" "}
+                            de {filteredProducts.length} producto
+                            {filteredProducts.length !== 1 ? "s" : ""}
+                            {filteredProducts.length !== products.length && (
+                              <> ({products.length} totales)</>
+                            )}
+                          </>
+                        ) : (
+                          "0 productos encontrados"
+                        )}
                       </p>
                     </div>
 
@@ -380,103 +416,116 @@ export default function ProductsClient({ products }: ProductsClientProps) {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredProducts.map((product) => (
-                  <Link
-                    key={product._id}
-                    href={`/products/${product._id}`}
-                    className="card hover:bg-white/10 transition-all group cursor-pointer"
-                  >
-                    {/* Imagen del producto */}
-                    <div className="bg-white/5 rounded-xl aspect-square mb-4 overflow-hidden">
-                      {product.images && product.images.length > 0 ? (
-                        <img
-                          src={product.images[0]}
-                          alt={product.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                      ) : (
-                        <ImagePlaceholder size="md" />
-                      )}
-                    </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {paginatedProducts.map((product) => (
+                    <Link
+                      key={product._id}
+                      href={`/products/${product._id}`}
+                      className="card hover:bg-white/10 transition-all group cursor-pointer"
+                    >
+                      {/* Imagen del producto */}
+                      <div className="bg-white/5 rounded-xl aspect-square mb-4 overflow-hidden">
+                        {product.images && product.images.length > 0 ? (
+                          <img
+                            src={product.images[0]}
+                            alt={product.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                        ) : (
+                          <ImagePlaceholder size="md" />
+                        )}
+                      </div>
 
-                    {/* Info del producto */}
-                    <div>
-                      <h3 className="font-semibold text-lg mb-1 group-hover:text-blue-400 transition-colors">
-                        {product.title}
-                      </h3>
-                      <p className="text-sm text-white/60 mb-3 line-clamp-2">
-                        {product.description}
-                      </p>
+                      {/* Info del producto */}
+                      <div>
+                        <h3 className="font-semibold text-lg mb-1 group-hover:text-blue-400 transition-colors">
+                          {product.title}
+                        </h3>
+                        <p className="text-sm text-white/60 mb-3 line-clamp-2">
+                          {product.description}
+                        </p>
 
-                      {/* Variantes */}
-                      {product.variants && product.variants.length > 0 && (
-                        <div className="mb-3">
-                          <div className="flex flex-wrap gap-1">
-                            {product.variants
-                              .slice(0, 4)
-                              .map((variant, idx) => (
+                        {/* Variantes */}
+                        {product.variants && product.variants.length > 0 && (
+                          <div className="mb-3">
+                            <div className="flex flex-wrap gap-1">
+                              {product.variants
+                                .slice(0, 4)
+                                .map((variant, idx) => (
+                                  <span
+                                    key={variant._id || idx}
+                                    className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30"
+                                  >
+                                    {variant.type === "color" ? "🎨" : "💾"}{" "}
+                                    {variant.name}
+                                  </span>
+                                ))}
+                              {product.variants.length > 4 && (
                                 <span
-                                  key={variant._id || idx}
-                                  className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30"
+                                  className={`text-xs px-2 py-1 ${
+                                    theme === "light"
+                                      ? "text-gray-500"
+                                      : "text-white/50"
+                                  }`}
                                 >
-                                  {variant.type === "color" ? "🎨" : "💾"}{" "}
-                                  {variant.name}
+                                  +{product.variants.length - 4}
                                 </span>
-                              ))}
-                            {product.variants.length > 4 && (
-                              <span
-                                className={`text-xs px-2 py-1 ${
-                                  theme === "light"
-                                    ? "text-gray-500"
-                                    : "text-white/50"
-                                }`}
-                              >
-                                +{product.variants.length - 4}
-                              </span>
-                            )}
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-2xl font-bold">
-                            ${formatPrice(product.price)}
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-2xl font-bold">
+                              ${formatPrice(product.price)}
+                            </div>
+                            <div className="text-sm text-white/50">
+                              {product.stock > 0 ? (
+                                <span className="text-green-400 font-medium">
+                                  ✓ En stock ({product.stock})
+                                </span>
+                              ) : (
+                                <span className="text-red-400 font-medium">
+                                  Sin stock
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <div className="text-sm text-white/50">
-                            {product.stock > 0 ? (
-                              <span className="text-green-400 font-medium">
-                                ✓ En stock ({product.stock})
-                              </span>
-                            ) : (
-                              <span className="text-red-400 font-medium">
-                                Sin stock
-                              </span>
-                            )}
-                          </div>
-                        </div>
 
-                        <div className="text-blue-400 group-hover:translate-x-1 transition-transform">
-                          <svg
-                            className="w-6 h-6"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 5l7 7-7 7"
-                            />
-                          </svg>
+                          <div className="text-blue-400 group-hover:translate-x-1 transition-transform">
+                            <svg
+                              className="w-6 h-6"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 5l7 7-7 7"
+                              />
+                            </svg>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+                    </Link>
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="mt-8">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={setCurrentPage}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </main>
         </div>

@@ -7,12 +7,12 @@ import UserManagement from "./UserManagement";
 import SocialLinksManager from "./SocialLinksManager";
 import ProductImporter from "./ProductImporter";
 import CategoryConfigManager from "./CategoryConfigManager";
+import Pagination from "./Pagination";
 import { deleteProduct } from "@/app/admin/actions";
 import { deleteAllProducts } from "@/app/admin/deleteAllActions";
 import { toggleFeatured } from "@/app/admin/featuredActions";
 import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
-import ImagePlaceholder from "./ImagePlaceholder";
 
 type Variant = {
   _id?: string;
@@ -71,6 +71,8 @@ export default function AdminDashboard({ products, users, stats }: Props) {
   const [localProducts, setLocalProducts] = useState<Product[]>(products);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   // Determinar si el usuario es admin basándose en si tiene acceso a usuarios
   const isAdmin = users.length > 0;
@@ -93,6 +95,12 @@ export default function AdminDashboard({ products, users, stats }: Props) {
 
     return matchesSearch && matchesCategory;
   });
+
+  // Paginación
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
 
   return (
     <div className="min-h-screen bg-transparent">
@@ -645,194 +653,253 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredProducts.map((product) => (
-                    <div
-                      key={product._id}
-                      onClick={() => router.push(`/products/${product._id}`)}
-                      className={`border rounded-xl p-4 transition-all cursor-pointer ${
-                        theme === "light"
-                          ? "border-gray-200 bg-white hover:bg-gray-50 shadow-sm hover:shadow-md"
-                          : "border-white/10 bg-white/5 hover:bg-white/10"
-                      }`}
-                    >
-                      <div
-                        className={`rounded-lg aspect-square mb-3 ${
-                          theme === "light" ? "bg-gray-100" : "bg-white/5"
-                        }`}
-                      >
-                        {product.images && product.images.length > 0 ? (
-                          <img
-                            src={product.images[0]}
-                            alt={product.title}
-                            className="w-full h-full object-cover rounded-lg"
-                          />
-                        ) : (
-                          <ImagePlaceholder size="sm" />
-                        )}
-                      </div>
-                      <h3
-                        className={`font-semibold mb-1 ${
-                          theme === "light" ? "text-gray-900" : "text-white"
-                        }`}
-                      >
-                        {product.title}
-                      </h3>
-                      <p
-                        className={`text-sm mb-3 line-clamp-2 ${
-                          theme === "light" ? "text-gray-600" : "text-white/60"
-                        }`}
-                      >
-                        {product.description}
-                      </p>
-
-                      {/* Variantes */}
-                      {product.variants && product.variants.length > 0 && (
-                        <div
-                          className={`mb-3 pb-3 border-b ${
+                <>
+                  {/* Vista de Lista / Tabla */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr
+                          className={`border-b ${
                             theme === "light"
                               ? "border-gray-200"
                               : "border-white/10"
                           }`}
                         >
-                          <p
-                            className={`text-xs mb-2 ${
+                          <th className="text-left py-3 px-2 text-sm font-semibold">
+                            Imagen
+                          </th>
+                          <th className="text-left py-3 px-2 text-sm font-semibold">
+                            Producto
+                          </th>
+                          <th className="text-left py-3 px-2 text-sm font-semibold hidden md:table-cell">
+                            Categoría
+                          </th>
+                          <th className="text-left py-3 px-2 text-sm font-semibold">
+                            Precio
+                          </th>
+                          <th className="text-left py-3 px-2 text-sm font-semibold hidden sm:table-cell">
+                            Stock
+                          </th>
+                          <th className="text-right py-3 px-2 text-sm font-semibold">
+                            Acciones
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paginatedProducts.map((product) => (
+                          <tr
+                            key={product._id}
+                            className={`border-b transition-colors ${
                               theme === "light"
-                                ? "text-gray-500"
-                                : "text-white/50"
+                                ? "border-gray-100 hover:bg-gray-50"
+                                : "border-white/5 hover:bg-white/5"
                             }`}
                           >
-                            {product.variants.length} variante
-                            {product.variants.length > 1 ? "s" : ""}:
-                          </p>
-                          <div className="flex flex-wrap gap-1">
-                            {product.variants
-                              .slice(0, 3)
-                              .map((variant, idx) => (
-                                <span
-                                  key={variant._id || idx}
-                                  className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30"
+                            {/* Imagen */}
+                            <td className="py-3 px-2">
+                              <div className="w-16 h-16 rounded-lg overflow-hidden">
+                                {product.images && product.images.length > 0 ? (
+                                  <img
+                                    src={product.images[0]}
+                                    alt={product.title}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div
+                                    className={`w-full h-full ${
+                                      theme === "light"
+                                        ? "bg-gray-100"
+                                        : "bg-white/5"
+                                    }`}
+                                  />
+                                )}
+                              </div>
+                            </td>
+
+                            {/* Producto */}
+                            <td className="py-3 px-2">
+                              <div className="flex flex-col">
+                                <Link
+                                  href={`/products/${product._id}`}
+                                  className={`font-semibold hover:text-blue-400 ${
+                                    theme === "light"
+                                      ? "text-gray-900"
+                                      : "text-white"
+                                  }`}
                                 >
-                                  {variant.type === "color" ? "🎨" : "💾"}{" "}
-                                  {variant.name}
-                                </span>
-                              ))}
-                            {product.variants.length > 3 && (
+                                  {product.title}
+                                </Link>
+                                <p
+                                  className={`text-xs mt-1 line-clamp-2 ${
+                                    theme === "light"
+                                      ? "text-gray-500"
+                                      : "text-white/50"
+                                  }`}
+                                >
+                                  {product.description}
+                                </p>
+                                {product.variants &&
+                                  product.variants.length > 0 && (
+                                    <div className="flex gap-1 mt-1">
+                                      {product.variants
+                                        .slice(0, 2)
+                                        .map((v, idx) => (
+                                          <span
+                                            key={idx}
+                                            className="text-xs px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400"
+                                          >
+                                            {v.name}
+                                          </span>
+                                        ))}
+                                      {product.variants.length > 2 && (
+                                        <span className="text-xs text-white/40">
+                                          +{product.variants.length - 2}
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                              </div>
+                            </td>
+
+                            {/* Categoría */}
+                            <td className="py-3 px-2 hidden md:table-cell">
+                              <span className="text-sm">
+                                {product.category || "-"}
+                              </span>
+                            </td>
+
+                            {/* Precio */}
+                            <td className="py-3 px-2">
+                              <span className="font-semibold">
+                                ${formatPrice(product.price)}
+                              </span>
+                            </td>
+
+                            {/* Stock */}
+                            <td className="py-3 px-2 hidden sm:table-cell">
                               <span
-                                className={`text-xs px-2 py-1 ${
-                                  theme === "light"
-                                    ? "text-gray-500"
-                                    : "text-white/50"
+                                className={`text-sm ${
+                                  product.stock > 0
+                                    ? "text-green-400"
+                                    : "text-red-400"
                                 }`}
                               >
-                                +{product.variants.length - 3} más
+                                {product.stock}
                               </span>
-                            )}
-                          </div>
-                        </div>
-                      )}
+                            </td>
 
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p
-                            className={`text-2xl font-bold ${
-                              theme === "light" ? "text-gray-900" : "text-white"
-                            }`}
-                          >
-                            ${formatPrice(product.price)}
-                          </p>
-                          <p
-                            className={`text-xs ${
-                              theme === "light"
-                                ? "text-gray-500"
-                                : "text-white/50"
-                            }`}
-                          >
-                            Stock: {product.stock}
-                          </p>
-                        </div>
-                      </div>
+                            {/* Acciones */}
+                            <td className="py-3 px-2">
+                              <div className="flex gap-1 justify-end">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    (async () => {
+                                      try {
+                                        console.log(
+                                          "Toggling featured for product:",
+                                          product._id,
+                                          "Current featured:",
+                                          product.featured
+                                        );
+                                        const result = await toggleFeatured(
+                                          product._id
+                                        );
+                                        console.log("Toggle result:", result);
 
-                      <div className="flex gap-2 mt-4">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            (async () => {
-                              try {
-                                console.log(
-                                  "Toggling featured for product:",
-                                  product._id,
-                                  "Current featured:",
-                                  product.featured
-                                );
-                                const result = await toggleFeatured(
-                                  product._id
-                                );
-                                console.log("Toggle result:", result);
+                                        if (result.success) {
+                                          // Actualizar el estado local
+                                          setLocalProducts((prevProducts) =>
+                                            prevProducts.map((p) =>
+                                              p._id === product._id
+                                                ? {
+                                                    ...p,
+                                                    featured: result.featured,
+                                                  }
+                                                : p
+                                            )
+                                          );
+                                        } else {
+                                          alert(`Error: ${result.error}`);
+                                        }
+                                      } catch (error) {
+                                        console.error(
+                                          "Error toggling featured:",
+                                          error
+                                        );
+                                        alert(`Error al actualizar: ${error}`);
+                                      }
+                                    })();
+                                  }}
+                                  className={`btn-icon ${
+                                    product.featured
+                                      ? "text-yellow-400"
+                                      : "text-white/40"
+                                  }`}
+                                  title={
+                                    product.featured
+                                      ? "Quitar de destacados"
+                                      : "Destacar en home"
+                                  }
+                                >
+                                  {product.featured ? "⭐" : "☆"}
+                                </button>
+                                <Link
+                                  href={`/products/${product._id}`}
+                                  className="btn-icon text-blue-400 hover:text-blue-300"
+                                  title="Ver detalle"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  👁️
+                                </Link>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingProduct(product);
+                                    setShowCreateProduct(false);
+                                    window.scrollTo({
+                                      top: 0,
+                                      behavior: "smooth",
+                                    });
+                                  }}
+                                  className="btn-icon text-green-400 hover:text-green-300"
+                                  title="Editar"
+                                >
+                                  ✏️
+                                </button>
+                                <form
+                                  onClick={(e) => e.stopPropagation()}
+                                  action={async () => {
+                                    await deleteProduct(product._id);
+                                  }}
+                                >
+                                  <button
+                                    type="submit"
+                                    className="btn-icon text-red-400 hover:text-red-300"
+                                    title="Eliminar"
+                                  >
+                                    🗑️
+                                  </button>
+                                </form>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
 
-                                if (result.success) {
-                                  // Actualizar el estado local
-                                  setLocalProducts((prevProducts) =>
-                                    prevProducts.map((p) =>
-                                      p._id === product._id
-                                        ? { ...p, featured: result.featured }
-                                        : p
-                                    )
-                                  );
-                                } else {
-                                  alert(`Error: ${result.error}`);
-                                }
-                              } catch (error) {
-                                console.error(
-                                  "Error toggling featured:",
-                                  error
-                                );
-                                alert(`Error al actualizar: ${error}`);
-                              }
-                            })();
-                          }}
-                          className={`btn flex-1 ${
-                            product.featured
-                              ? "bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 border border-yellow-400/30"
-                              : "bg-white/5 border border-white/10 hover:bg-white/10"
-                          }`}
-                          title={
-                            product.featured
-                              ? "Quitar de destacados"
-                              : "Destacar en home"
-                          }
-                        >
-                          {product.featured ? "⭐" : "☆"}
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingProduct(product);
-                            setShowCreateProduct(false);
-                            window.scrollTo({ top: 0, behavior: "smooth" });
-                          }}
-                          className="btn bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 flex-1"
-                        >
-                          Editar
-                        </button>
-                        <form
-                          onClick={(e) => e.stopPropagation()}
-                          action={async () => {
-                            await deleteProduct(product._id);
-                          }}
-                          className="flex-1"
-                        >
-                          <button
-                            type="submit"
-                            className="btn bg-red-500/20 text-red-400 hover:bg-red-500/30 w-full"
-                          >
-                            Eliminar
-                          </button>
-                        </form>
-                      </div>
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="mt-6">
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setCurrentPage}
+                      />
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
             </div>
           </div>

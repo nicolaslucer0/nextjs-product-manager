@@ -18,4 +18,5 @@ export type CategoryConfigType = {
   updatedAt: string;
 };
 
-export default models.CategoryConfig || model("CategoryConfig", CategoryConfigSchema);
+export default models.CategoryConfig ||
+  model("CategoryConfig", CategoryConfigSchema);

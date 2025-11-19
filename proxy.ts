@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
+// Esta es la función proxy que Next.js ejecutará para cada request
+export function proxy(request: NextRequest) {
   // Por ahora, solo devolvemos la respuesta normal
   // El rate limiting se aplicará en las rutas API individuales
   return NextResponse.next();

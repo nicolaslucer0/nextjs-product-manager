@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useToast } from "@/contexts/ToastContext";
 
 type ImportResult = {
   success: boolean;
@@ -10,9 +11,21 @@ type ImportResult = {
   errors?: string[];
 };
 
+type ProgressData = {
+  message: string;
+  percent: number;
+  created?: number;
+  updated?: number;
+  errors?: number;
+  processed?: number;
+  total?: number;
+};
+
 export default function ProductImporter() {
+  const { showToast } = useToast();
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<ProgressData | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState("");
 
@@ -27,40 +40,107 @@ export default function ProductImporter() {
 
   const handleUpload = async () => {
     if (!file) {
-      setError("Por favor selecciona un archivo");
+      showToast("Por favor selecciona un archivo", "warning");
       return;
     }
 
     setUploading(true);
     setError("");
     setResult(null);
+    setProgress(null);
 
     try {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("/api/products/import", {
+      // Usar el endpoint con streaming
+      const res = await fetch("/api/products/import-stream", {
         method: "POST",
         body: formData,
       });
 
-      const data = await res.json();
+      if (!res.ok) {
+        throw new Error("Error al iniciar la importación");
+      }
 
-      if (res.ok) {
-        setResult(data);
-        setFile(null);
-        // Reset input
-        const input = document.getElementById("file-input") as HTMLInputElement;
-        if (input) input.value = "";
-      } else {
-        setError(data.error || "Error al importar productos");
-        if (data.hint) {
-          setError(`${data.error}\n${data.hint}`);
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error("No se pudo leer la respuesta");
+      }
+
+      // Leer el stream
+      let buffer = "";
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n\n");
+        
+        // Guardar la última línea incompleta
+        buffer = lines.pop() || "";
+
+        // Procesar cada línea completa
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const data = JSON.parse(line.slice(6));
+
+              if (data.type === "progress") {
+                setProgress({
+                  message: data.message,
+                  percent: data.percent,
+                  created: data.created,
+                  updated: data.updated,
+                  errors: data.errors,
+                  processed: data.processed,
+                  total: data.total,
+                });
+              } else if (data.type === "complete") {
+                setResult({
+                  success: data.success,
+                  message: data.message,
+                  created: data.created,
+                  updated: data.updated,
+                  total: data.total,
+                  errors: data.errors,
+                });
+                setProgress(null);
+                setFile(null);
+                showToast("Importación completada exitosamente", "success");
+                
+                // Reset input
+                const input = document.getElementById("file-input") as HTMLInputElement;
+                if (input) input.value = "";
+                
+                // Recargar página después de 2 segundos
+                setTimeout(() => {
+                  globalThis.location.reload();
+                }, 2000);
+              } else if (data.type === "error") {
+                setError(data.message);
+                if (data.hint) {
+                  setError(`${data.message}\n${data.hint}`);
+                }
+                showToast(data.message, "error");
+                setProgress(null);
+              }
+            } catch (e) {
+              console.error("Error parsing SSE data:", e);
+            }
+          }
         }
       }
     } catch (err) {
       console.error("Error uploading file:", err);
-      setError("Error al subir el archivo");
+      const errorMsg = err instanceof Error ? err.message : "Error al subir el archivo";
+      setError(errorMsg);
+      showToast(errorMsg, "error");
+      setProgress(null);
     } finally {
       setUploading(false);
     }
@@ -121,7 +201,7 @@ PROD003	AirPods Pro	Accesorios	Apple	APP2023	100	249.99	Auriculares inalámbrico
 
       {/* Selector de archivo */}
       <div className="mb-6">
-        <label className="label">Seleccionar archivo</label>
+        <label htmlFor="file-input" className="label">Seleccionar archivo</label>
         <div className="flex gap-3">
           <input
             id="file-input"
@@ -129,22 +209,83 @@ PROD003	AirPods Pro	Accesorios	Apple	APP2023	100	249.99	Auriculares inalámbrico
             accept=".csv,.xlsx,.xls"
             onChange={handleFileChange}
             className="input flex-1"
+            disabled={uploading}
           />
           <button
             onClick={handleUpload}
             disabled={!file || uploading}
             className="btn btn-primary px-6"
           >
-            {uploading ? "⏳ Subiendo..." : "📤 Importar"}
+            {uploading ? (
+              <span className="flex items-center gap-2">
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Procesando...
+              </span>
+            ) : (
+              "📤 Importar"
+            )}
           </button>
         </div>
-        {file && (
+        {file && !uploading && (
           <p className="text-sm text-white/60 mt-2">
             Archivo seleccionado: <strong>{file.name}</strong> (
             {(file.size / 1024).toFixed(2)} KB)
           </p>
         )}
       </div>
+
+      {/* Barra de progreso */}
+      {progress && (
+        <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg p-4 mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold text-blue-400">
+              {progress.message}
+            </h3>
+            <span className="text-blue-300 font-bold">{progress.percent}%</span>
+          </div>
+          
+          {/* Barra de progreso */}
+          <div className="w-full bg-black/30 rounded-full h-3 mb-3 overflow-hidden">
+            <div
+              className="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-300 ease-out"
+              style={{ width: `${progress.percent}%` }}
+            />
+          </div>
+
+          {/* Estadísticas en tiempo real */}
+          {progress.processed !== undefined && progress.total !== undefined && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+              <div className="bg-black/30 rounded-lg p-2 text-center">
+                <div className="text-white/60 text-xs">Procesados</div>
+                <div className="text-white font-semibold">
+                  {progress.processed} / {progress.total}
+                </div>
+              </div>
+              {progress.created !== undefined && (
+                <div className="bg-green-500/20 rounded-lg p-2 text-center">
+                  <div className="text-green-400/80 text-xs">Creados</div>
+                  <div className="text-green-300 font-semibold">{progress.created}</div>
+                </div>
+              )}
+              {progress.updated !== undefined && (
+                <div className="bg-yellow-500/20 rounded-lg p-2 text-center">
+                  <div className="text-yellow-400/80 text-xs">Actualizados</div>
+                  <div className="text-yellow-300 font-semibold">{progress.updated}</div>
+                </div>
+              )}
+              {progress.errors !== undefined && progress.errors > 0 && (
+                <div className="bg-red-500/20 rounded-lg p-2 text-center">
+                  <div className="text-red-400/80 text-xs">Errores</div>
+                  <div className="text-red-300 font-semibold">{progress.errors}</div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Resultado */}
       {result && (

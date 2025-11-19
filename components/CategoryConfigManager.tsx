@@ -1,7 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
-import { useToast } from "@/contexts/ToastContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useToast } from "@/contexts/ToastContext";
+import { useEffect, useState } from "react";
 
 type CategoryConfig = {
   _id: string;
@@ -16,6 +16,7 @@ type Props = {
 
 export default function CategoryConfigManager({ categories }: Props) {
   const { theme } = useTheme();
+  const { showToast } = useToast();
   const [configs, setConfigs] = useState<CategoryConfig[]>([]);
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [warrantyMessage, setWarrantyMessage] = useState("");

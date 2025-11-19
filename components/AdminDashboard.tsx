@@ -1,19 +1,18 @@
 "use client";
-import { useState, useEffect } from "react";
-import { useTheme } from "@/contexts/ThemeContext";
-import { useToast } from "@/contexts/ToastContext";
-import { useRouter } from "next/navigation";
-import ProductForm from "./ProductForm";
-import UserManagement from "./UserManagement";
-import SocialLinksManager from "./SocialLinksManager";
-import ProductImporter from "./ProductImporter";
-import CategoryConfigManager from "./CategoryConfigManager";
-import Pagination from "./Pagination";
 import { deleteProduct } from "@/app/admin/actions";
 import { deleteAllProducts } from "@/app/admin/deleteAllActions";
 import { toggleFeatured } from "@/app/admin/featuredActions";
-import Link from "next/link";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useToast } from "@/contexts/ToastContext";
 import { formatPrice } from "@/lib/utils";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import CategoryConfigManager from "./CategoryConfigManager";
+import Pagination from "./Pagination";
+import ProductForm from "./ProductForm";
+import ProductImporter from "./ProductImporter";
+import SocialLinksManager from "./SocialLinksManager";
+import UserManagement from "./UserManagement";
 
 type Variant = {
   _id?: string;
@@ -64,7 +63,6 @@ type Props = {
 export default function AdminDashboard({ products, users, stats }: Props) {
   const { theme } = useTheme();
   const { showToast } = useToast();
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState<
     "overview" | "products" | "users" | "social" | "import" | "config"
   >("products");
@@ -447,7 +445,7 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                     try {
                       const result = await deleteAllProducts();
                       if (result.success) {
-                        showToast(result.message, "success");
+                        showToast(result.message || "", "success");
                         setTimeout(() => {
                           globalThis.location.reload();
                         }, 1000);

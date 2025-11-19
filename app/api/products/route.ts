@@ -2,14 +2,39 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import { verifyToken } from "@/lib/auth";
+import { apiLimiter, writeLimiter, getIP } from "@/lib/ratelimit";
 
-export async function GET() {
+export async function GET(req: Request) {
+  // Rate limiting para lectura
+  if (apiLimiter) {
+    const ip = getIP(req);
+    const { success } = await apiLimiter.limit(ip);
+    if (!success) {
+      return NextResponse.json(
+        { error: "Demasiadas peticiones. Intenta de nuevo más tarde." },
+        { status: 429 }
+      );
+    }
+  }
+
   await connectDB();
   const products = await Product.find().sort({ createdAt: -1 });
   return NextResponse.json(products);
 }
 
 export async function POST(req: Request) {
+  // Rate limiting para escritura
+  if (writeLimiter) {
+    const ip = getIP(req);
+    const { success } = await writeLimiter.limit(ip);
+    if (!success) {
+      return NextResponse.json(
+        { error: "Demasiadas peticiones de escritura. Intenta de nuevo más tarde." },
+        { status: 429 }
+      );
+    }
+  }
+
   try {
     // Verificar que el usuario esté autenticado
     const authHeader = req.headers.get("authorization");

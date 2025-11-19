@@ -1,8 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import sharp from "sharp";
+import { uploadLimiter, getIP } from "@/lib/ratelimit";
 
 export async function POST(request: NextRequest) {
+  // Rate limiting
+  if (uploadLimiter) {
+    const ip = getIP(request);
+    const { success, limit, remaining, reset } = await uploadLimiter.limit(ip);
+
+    if (!success) {
+      return NextResponse.json(
+        {
+          error: "Demasiadas subidas de imágenes. Intenta de nuevo más tarde.",
+        },
+        {
+          status: 429,
+          headers: {
+            "X-RateLimit-Limit": limit.toString(),
+            "X-RateLimit-Remaining": remaining.toString(),
+            "X-RateLimit-Reset": new Date(reset).toISOString(),
+          },
+        }
+      );
+    }
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File;

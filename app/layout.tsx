@@ -1,6 +1,7 @@
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata = {
   title: "NeoTech - Product Manager",
@@ -19,6 +20,7 @@ export default function RootLayout({
           <Navbar />
           <main className="pt-20">{children}</main>
         </ThemeProvider>
+        <SpeedInsights />
       </body>
     </html>
   );

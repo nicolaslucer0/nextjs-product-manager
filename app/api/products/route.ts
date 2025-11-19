@@ -18,8 +18,79 @@ export async function GET(req: Request) {
   }
 
   await connectDB();
-  const products = await Product.find().sort({ createdAt: -1 });
-  return NextResponse.json(products);
+
+  // Obtener parámetros de paginación y filtros
+  const { searchParams } = new URL(req.url);
+  const page = Number.parseInt(searchParams.get("page") || "1", 10);
+  const limit = Number.parseInt(searchParams.get("limit") || "12", 10);
+  const search = searchParams.get("search") || "";
+  const category = searchParams.get("category") || "";
+  const minPrice = searchParams.get("minPrice");
+  const maxPrice = searchParams.get("maxPrice");
+  const inStock = searchParams.get("inStock") === "true";
+  const sortBy = searchParams.get("sortBy") || "newest";
+
+  // Construir query de filtros
+  const query: any = {};
+
+  if (search) {
+    query.$or = [
+      { title: { $regex: search, $options: "i" } },
+      { description: { $regex: search, $options: "i" } },
+    ];
+  }
+
+  if (category && category !== "all") {
+    query.category = category;
+  }
+
+  if (minPrice) {
+    query.price = { ...query.price, $gte: Number.parseFloat(minPrice) };
+  }
+
+  if (maxPrice) {
+    query.price = { ...query.price, $lte: Number.parseFloat(maxPrice) };
+  }
+
+  if (inStock) {
+    query.stock = { $gt: 0 };
+  }
+
+  // Definir ordenamiento
+  let sort: any = { createdAt: -1 };
+  switch (sortBy) {
+    case "price-asc":
+      sort = { price: 1 };
+      break;
+    case "price-desc":
+      sort = { price: -1 };
+      break;
+    case "name-asc":
+      sort = { title: 1 };
+      break;
+    case "name-desc":
+      sort = { title: -1 };
+      break;
+  }
+
+  // Calcular skip para paginación
+  const skip = (page - 1) * limit;
+
+  // Ejecutar query con paginación
+  const [products, total] = await Promise.all([
+    Product.find(query).sort(sort).skip(skip).limit(limit).lean(),
+    Product.countDocuments(query),
+  ]);
+
+  return NextResponse.json({
+    products,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  });
 }
 
 export async function POST(req: Request) {

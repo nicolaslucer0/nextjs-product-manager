@@ -1,8 +1,11 @@
 "use client";
 import { useState } from "react";
+import { useToast } from "@/contexts/ToastContext";
 import Link from "next/link";
 
 export default function RegisterPage() {
+  const { showToast } = useToast();
+  const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,29 +22,41 @@ export default function RegisterPage() {
     // Validar que las contraseñas coincidan
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden");
+      showToast("Las contraseñas no coinciden", "warning");
       return;
     }
 
     // Validar longitud mínima de contraseña
     if (password.length < 6) {
       setError("La contraseña debe tener al menos 6 caracteres");
+      showToast("La contraseña debe tener al menos 6 caracteres", "warning");
       return;
     }
 
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
-    });
-    const data = await res.json();
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+      const data = await res.json();
 
-    if (res.ok) {
-      setIsSuccess(true);
-      setMessage(
-        "¡Registro exitoso! Tu cuenta está pendiente de activación por un administrador. Te notificaremos cuando puedas iniciar sesión."
-      );
-    } else {
-      setError(data.error || "Error al registrar el usuario");
+      if (res.ok) {
+        setIsSuccess(true);
+        setMessage(
+          "¡Registro exitoso! Tu cuenta está pendiente de activación por un administrador. Te notificaremos cuando puedas iniciar sesión."
+        );
+        showToast("¡Registro exitoso!", "success");
+      } else {
+        setError(data.error || "Error al registrar el usuario");
+        showToast(data.error || "Error al registrar el usuario", "error");
+      }
+    } catch (error) {
+      setError("Error al registrar el usuario");
+      showToast("Error al registrar el usuario", "error");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -176,8 +191,34 @@ export default function RegisterPage() {
                 </div>
               )}
 
-              <button className="btn btn-primary w-full" type="submit">
-                Registrarse
+              <button
+                className="btn btn-primary w-full"
+                type="submit"
+                disabled={loading}
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    Registrando...
+                  </span>
+                ) : (
+                  "Registrarse"
+                )}
               </button>
 
               <div className="text-center text-sm text-gray-600">

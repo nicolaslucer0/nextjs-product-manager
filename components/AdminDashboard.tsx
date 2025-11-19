@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useToast } from "@/contexts/ToastContext";
 import { useRouter } from "next/navigation";
 import ProductForm from "./ProductForm";
 import UserManagement from "./UserManagement";
@@ -62,6 +63,7 @@ type Props = {
 
 export default function AdminDashboard({ products, users, stats }: Props) {
   const { theme } = useTheme();
+  const { showToast } = useToast();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<
     "overview" | "products" | "users" | "social" | "import" | "config"
@@ -73,6 +75,14 @@ export default function AdminDashboard({ products, users, stats }: Props) {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+
+  // Reset page when filters change
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, categoryFilter]);
 
   // Determinar si el usuario es admin basándose en si tiene acceso a usuarios
   const isAdmin = users.length > 0;
@@ -437,13 +447,18 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                     try {
                       const result = await deleteAllProducts();
                       if (result.success) {
-                        alert(`✅ ${result.message}`);
-                        window.location.reload();
+                        showToast(result.message, "success");
+                        setTimeout(() => {
+                          globalThis.location.reload();
+                        }, 1000);
                       } else {
-                        alert(`❌ Error: ${result.error}`);
+                        showToast(
+                          result.error || "Error al eliminar productos",
+                          "error"
+                        );
                       }
                     } catch (error) {
-                      alert(`❌ Error al eliminar productos: ${error}`);
+                      showToast("Error al eliminar productos", "error");
                     }
                   }}
                   className="btn bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 text-red-400 flex items-center justify-center gap-2 text-sm sm:text-base"
@@ -820,15 +835,26 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                                                 : p
                                             )
                                           );
+                                          showToast(
+                                            "Producto destacado actualizado",
+                                            "success"
+                                          );
                                         } else {
-                                          alert(`Error: ${result.error}`);
+                                          showToast(
+                                            result.error ||
+                                              "Error al actualizar",
+                                            "error"
+                                          );
                                         }
                                       } catch (error) {
                                         console.error(
                                           "Error toggling featured:",
                                           error
                                         );
-                                        alert(`Error al actualizar: ${error}`);
+                                        showToast(
+                                          "Error al actualizar producto",
+                                          "error"
+                                        );
                                       }
                                     })();
                                   }}

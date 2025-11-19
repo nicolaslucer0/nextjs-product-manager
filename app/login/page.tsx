@@ -1,37 +1,42 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/contexts/ToastContext";
 import Link from "next/link";
 
 export default function LoginPage() {
+  const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
 
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
 
-    if (res.ok) {
-      localStorage.setItem("token", data.token);
-      setMessage("¡Inicio de sesión exitoso! Redirigiendo...");
+      if (res.ok) {
+        localStorage.setItem("token", data.token);
+        showToast("¡Inicio de sesión exitoso! Redirigiendo...", "success");
 
-      // Redirigir al admin dashboard
-      setTimeout(() => {
-        router.push("/admin");
-      }, 500);
-    } else {
-      setMessage(data.error || "Error al iniciar sesión");
+        // Redirigir al admin dashboard
+        setTimeout(() => {
+          router.push("/admin");
+        }, 500);
+      } else {
+        showToast(data.error || "Error al iniciar sesión", "error");
+        setLoading(false);
+      }
+    } catch (error) {
+      showToast("Error al iniciar sesión", "error");
       setLoading(false);
     }
   }
@@ -77,24 +82,34 @@ export default function LoginPage() {
             />
           </div>
 
-          {message && (
-            <div
-              className={`px-4 py-4 rounded-xl backdrop-blur-xl ${
-                message.includes("exitoso")
-                  ? "bg-green-500/20 border border-green-500/30 text-green-300"
-                  : "bg-red-500/20 border border-red-500/30 text-red-300"
-              }`}
-            >
-              <p className="text-sm font-medium">{message}</p>
-            </div>
-          )}
-
           <button
             className="btn btn-primary w-full text-lg py-4"
             type="submit"
             disabled={loading}
           >
-            {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                Iniciando sesión...
+              </span>
+            ) : (
+              "Iniciar Sesión"
+            )}
           </button>
 
           <div className="text-center text-sm text-white/60">

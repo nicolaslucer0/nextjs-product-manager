@@ -4,7 +4,12 @@ import ProductsClient from "./ProductsClient";
 
 export default async function ProductsPage() {
   await connectDB();
-  const products = await Product.find().sort({ createdAt: -1 }).lean();
 
-  return <ProductsClient products={JSON.parse(JSON.stringify(products))} />;
+  // Obtener solo las categorías únicas para los filtros
+  const categories = await Product.distinct("category");
+  const totalProducts = await Product.countDocuments();
+
+  return (
+    <ProductsClient categories={categories} totalProducts={totalProducts} />
+  );
 }

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useToast } from "@/contexts/ToastContext";
 import ImageUploader from "./ImageUploader";
 import { formatPrice } from "@/lib/utils";
 
@@ -34,6 +35,8 @@ export default function ProductForm({
   onSuccess,
   categories = [],
 }: Props) {
+  const { showToast } = useToast();
+  const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -76,7 +79,7 @@ export default function ProductForm({
 
   function addVariant() {
     if (!variantName) {
-      alert("El nombre de la variante es requerido");
+      showToast("El nombre de la variante es requerido", "warning");
       return;
     }
 
@@ -117,6 +120,7 @@ export default function ProductForm({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    setLoading(true);
 
     const productData = {
       title,
@@ -134,41 +138,50 @@ export default function ProductForm({
       })),
     };
 
-    const token = localStorage.getItem("token");
-    const isEditing = product?._id;
-    const url = isEditing ? `/api/products/${product._id}` : "/api/products";
-    const method = isEditing ? "PUT" : "POST";
+    try {
+      const token = localStorage.getItem("token");
+      const isEditing = product?._id;
+      const url = isEditing ? `/api/products/${product._id}` : "/api/products";
+      const method = isEditing ? "PUT" : "POST";
 
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(productData),
-    });
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(productData),
+      });
 
-    if (res.ok) {
-      if (!isEditing) {
-        setTitle("");
-        setDescription("");
-        setPrice(0);
-        setStock(0);
-        setImages([]);
-        setVariants([]);
+      if (res.ok) {
+        if (!isEditing) {
+          setTitle("");
+          setDescription("");
+          setPrice(0);
+          setStock(0);
+          setImages([]);
+          setVariants([]);
+        }
+        showToast(
+          isEditing
+            ? "Producto actualizado exitosamente"
+            : "Producto creado exitosamente",
+          "success"
+        );
+        if (onSuccess) {
+          onSuccess();
+        }
+        setTimeout(() => {
+          globalThis.location.reload();
+        }, 1000);
+      } else {
+        const error = await res.json();
+        showToast(error.error || "Error al guardar el producto", "error");
       }
-      alert(
-        isEditing
-          ? "Producto actualizado exitosamente"
-          : "Producto creado exitosamente"
-      );
-      if (onSuccess) {
-        onSuccess();
-      }
-      globalThis.location.reload();
-      location.reload();
-    } else {
-      alert("Error al crear el producto");
+    } catch (error) {
+      showToast("Error al guardar el producto", "error");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -532,8 +545,36 @@ export default function ProductForm({
       </div>
 
       <div className="border-t border-white/10 pt-6">
-        <button className="btn btn-primary w-full md:w-auto" type="submit">
-          {isEditing ? "Actualizar Producto" : "Crear Producto"}
+        <button
+          className="btn btn-primary w-full md:w-auto"
+          type="submit"
+          disabled={loading}
+        >
+          {loading ? (
+            <span className="flex items-center gap-2">
+              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  fill="none"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              Guardando...
+            </span>
+          ) : isEditing ? (
+            "Actualizar Producto"
+          ) : (
+            "Crear Producto"
+          )}
         </button>
       </div>
     </form>

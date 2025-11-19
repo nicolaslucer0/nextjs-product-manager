@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useTheme } from "@/contexts/ThemeContext";
 import { formatPrice } from "@/lib/utils";
@@ -27,11 +27,17 @@ type Product = {
 };
 
 type ProductsClientProps = {
-  readonly products: Product[];
+  readonly categories: string[];
+  readonly totalProducts: number;
 };
 
-export default function ProductsClient({ products }: ProductsClientProps) {
+export default function ProductsClient({
+  categories,
+  totalProducts,
+}: ProductsClientProps) {
   const { theme } = useTheme();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [minPrice, setMinPrice] = useState("");
@@ -40,90 +46,57 @@ export default function ProductsClient({ products }: ProductsClientProps) {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(12);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(totalProducts);
+  const itemsPerPage = 12;
 
-  // Obtener categorías únicas
-  const categories = useMemo(
-    () =>
-      Array.from(new Set(products.map((p) => p.category).filter(Boolean))).sort(
-        (a, b) => a!.localeCompare(b!)
-      ),
-    [products]
-  );
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({
+          page: currentPage.toString(),
+          limit: itemsPerPage.toString(),
+          sortBy,
+        });
 
-  // Filtrado y ordenamiento
-  const filteredProducts = useMemo(() => {
-    let filtered = [...products];
+        if (searchTerm) params.append("search", searchTerm);
+        if (categoryFilter !== "all") params.append("category", categoryFilter);
+        if (minPrice) params.append("minPrice", minPrice);
+        if (maxPrice) params.append("maxPrice", maxPrice);
+        if (inStock) params.append("inStock", "true");
 
-    // Búsqueda por texto
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (p) =>
-          p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          p.description.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+        const response = await fetch(`/api/products?${params.toString()}`);
+        const data = await response.json();
 
-    // Filtro de categoría
-    if (categoryFilter !== "all") {
-      filtered = filtered.filter((p) => p.category === categoryFilter);
-    }
+        setProducts(data.products);
+        setTotalPages(data.pagination.totalPages);
+        setTotal(data.pagination.total);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Filtro de precio mínimo
-    if (minPrice) {
-      filtered = filtered.filter((p) => p.price >= Number.parseFloat(minPrice));
-    }
-
-    // Filtro de precio máximo
-    if (maxPrice) {
-      filtered = filtered.filter((p) => p.price <= Number.parseFloat(maxPrice));
-    }
-
-    // Filtro de stock
-    if (inStock) {
-      filtered = filtered.filter((p) => p.stock > 0);
-    }
-
-    // Ordenamiento
-    switch (sortBy) {
-      case "price-asc":
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case "price-desc":
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-      case "name-asc":
-        filtered.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case "name-desc":
-        filtered.sort((a, b) => b.title.localeCompare(a.title));
-        break;
-      case "newest":
-      default:
-        // Ya viene ordenado por createdAt desc
-        break;
-    }
-
-    return filtered;
+    fetchProducts();
   }, [
-    products,
+    currentPage,
     searchTerm,
     categoryFilter,
-    sortBy,
     minPrice,
     maxPrice,
     inStock,
+    sortBy,
   ]);
 
-  // Paginación
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
-
   // Reset page when filters change
-  useMemo(() => {
-    setCurrentPage(1);
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, categoryFilter, minPrice, maxPrice, inStock, sortBy]);
 
   const clearFilters = () => {
@@ -265,6 +238,9 @@ export default function ProductsClient({ products }: ProductsClientProps) {
     </div>
   );
 
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, total);
+
   return (
     <div className="min-h-screen">
       <div className="container mx-auto py-8">
@@ -272,7 +248,7 @@ export default function ProductsClient({ products }: ProductsClientProps) {
         <div className="mb-8">
           <h1 className="text-5xl font-bold mb-3">Catálogo de Productos</h1>
           <p className="text-white/60 text-lg">
-            Explora nuestra colección completa ({products.length} productos)
+            Explora nuestra colección completa ({totalProducts} productos)
           </p>
         </div>
 
@@ -295,18 +271,13 @@ export default function ProductsClient({ products }: ProductsClientProps) {
               {/* Resultados */}
               <div className="mt-6 pt-4 border-t border-white/10">
                 <p className="text-sm text-white/60">
-                  {filteredProducts.length > 0 ? (
+                  {total > 0 ? (
                     <>
                       Mostrando{" "}
                       <span className="font-semibold text-white">
-                        {startIndex + 1}-
-                        {Math.min(endIndex, filteredProducts.length)}
+                        {startIndex}-{endIndex}
                       </span>{" "}
-                      de {filteredProducts.length} producto
-                      {filteredProducts.length !== 1 ? "s" : ""}
-                      {filteredProducts.length !== products.length && (
-                        <> ({products.length} totales)</>
-                      )}
+                      de {total} producto{total !== 1 ? "s" : ""}
                     </>
                   ) : (
                     "0 productos encontrados"
@@ -323,6 +294,13 @@ export default function ProductsClient({ products }: ProductsClientProps) {
               <div
                 className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
                 onClick={() => setShowFilters(false)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    setShowFilters(false);
+                  }
+                }}
               />
 
               {/* Bottom Sheet */}
@@ -368,18 +346,13 @@ export default function ProductsClient({ products }: ProductsClientProps) {
                     {/* Resultados */}
                     <div className="mt-6 pt-4 border-t border-white/10">
                       <p className="text-sm text-white/60">
-                        {filteredProducts.length > 0 ? (
+                        {total > 0 ? (
                           <>
                             Mostrando{" "}
                             <span className="font-semibold text-white">
-                              {startIndex + 1}-
-                              {Math.min(endIndex, filteredProducts.length)}
+                              {startIndex}-{endIndex}
                             </span>{" "}
-                            de {filteredProducts.length} producto
-                            {filteredProducts.length !== 1 ? "s" : ""}
-                            {filteredProducts.length !== products.length && (
-                              <> ({products.length} totales)</>
-                            )}
+                            de {total} producto{total !== 1 ? "s" : ""}
                           </>
                         ) : (
                           "0 productos encontrados"
@@ -466,7 +439,14 @@ export default function ProductsClient({ products }: ProductsClientProps) {
               )}
             </div>
 
-            {filteredProducts.length === 0 ? (
+            {loading ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="text-center">
+                  <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent mb-4"></div>
+                  <p className="text-white/60">Cargando productos...</p>
+                </div>
+              </div>
+            ) : products.length === 0 ? (
               <div className="card text-center py-16">
                 <div className="w-24 h-24 rounded-full mx-auto mb-4 bg-white/5 flex items-center justify-center text-4xl">
                   📦
@@ -484,7 +464,7 @@ export default function ProductsClient({ products }: ProductsClientProps) {
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {paginatedProducts.map((product) => (
+                  {products.map((product) => (
                     <Link
                       key={product._id}
                       href={`/products/${product._id}`}

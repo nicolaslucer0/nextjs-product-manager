@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useToast } from "@/contexts/ToastContext";
 
 type User = {
   _id: string;
@@ -15,6 +16,7 @@ export default function UserManagement({
 }: Readonly<{
   users: User[];
 }>) {
+  const { showToast } = useToast();
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [loading, setLoading] = useState<string | null>(null);
 
@@ -34,12 +36,13 @@ export default function UserManagement({
       if (res.ok) {
         const updatedUser = await res.json();
         setUsers(users.map((u) => (u._id === userId ? updatedUser : u)));
+        showToast("Usuario actualizado correctamente", "success");
       } else {
         const error = await res.json();
-        alert(error.error || "Error al actualizar el usuario");
+        showToast(error.error || "Error al actualizar el usuario", "error");
       }
     } catch (error) {
-      alert("Error al actualizar el usuario");
+      showToast("Error al actualizar el usuario", "error");
     } finally {
       setLoading(null);
     }
@@ -60,12 +63,13 @@ export default function UserManagement({
 
       if (res.ok) {
         setUsers(users.filter((u) => u._id !== userId));
+        showToast("Usuario eliminado correctamente", "success");
       } else {
         const error = await res.json();
-        alert(error.error || "Error al eliminar el usuario");
+        showToast(error.error || "Error al eliminar el usuario", "error");
       }
     } catch (error) {
-      alert("Error al eliminar el usuario");
+      showToast("Error al eliminar el usuario", "error");
     } finally {
       setLoading(null);
     }

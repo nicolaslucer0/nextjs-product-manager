@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useToast } from "@/contexts/ToastContext";
 import { useTheme } from "@/contexts/ThemeContext";
 
 type CategoryConfig = {
@@ -58,13 +59,13 @@ export default function CategoryConfigManager({ categories }: Props) {
       if (response.ok) {
         await loadConfigs();
         setEditingCategory(null);
-        alert("✅ Configuración guardada exitosamente");
+        showToast("Configuración guardada exitosamente", "success");
       } else {
-        alert("❌ Error al guardar configuración");
+        showToast("Error al guardar configuración", "error");
       }
     } catch (error) {
       console.error("Error saving config:", error);
-      alert("❌ Error al guardar configuración");
+      showToast("Error al guardar configuración", "error");
     } finally {
       setSaving(false);
     }

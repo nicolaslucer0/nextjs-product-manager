@@ -1,6 +1,7 @@
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { ToastProvider } from "@/contexts/ToastContext";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata = {
@@ -17,8 +18,10 @@ export default function RootLayout({
     <html lang="es">
       <body suppressHydrationWarning className="bg-black transition-colors">
         <ThemeProvider>
-          <Navbar />
-          <main className="pt-20">{children}</main>
+          <ToastProvider>
+            <Navbar />
+            <main className="pt-20">{children}</main>
+          </ToastProvider>
         </ThemeProvider>
         <SpeedInsights />
       </body>

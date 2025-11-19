@@ -14,7 +14,8 @@ export async function POST(req: Request) {
     if (!success) {
       return NextResponse.json(
         {
-          error: "Demasiados intentos de inicio de sesión. Intenta de nuevo más tarde.",
+          error:
+            "Demasiados intentos de inicio de sesión. Intenta de nuevo más tarde.",
         },
         {
           status: 429,

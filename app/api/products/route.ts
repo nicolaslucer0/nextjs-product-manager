@@ -29,7 +29,10 @@ export async function POST(req: Request) {
     const { success } = await writeLimiter.limit(ip);
     if (!success) {
       return NextResponse.json(
-        { error: "Demasiadas peticiones de escritura. Intenta de nuevo más tarde." },
+        {
+          error:
+            "Demasiadas peticiones de escritura. Intenta de nuevo más tarde.",
+        },
         { status: 429 }
       );
     }

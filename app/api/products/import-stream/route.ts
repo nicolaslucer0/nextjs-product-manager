@@ -5,13 +5,13 @@ import * as XLSX from "xlsx";
 
 // Configurar para permitir respuestas grandes
 export const maxDuration = 300; // 5 minutos
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 const BATCH_SIZE = 50; // Procesar 50 productos a la vez
 
 export async function POST(req: NextRequest) {
   const encoder = new TextEncoder();
-  
+
   const stream = new ReadableStream({
     async start(controller) {
       try {
@@ -143,7 +143,9 @@ export async function POST(req: NextRequest) {
             encoder.encode(
               `data: ${JSON.stringify({
                 type: "error",
-                message: `Faltan columnas requeridas: ${missingHeaders.join(", ")}`,
+                message: `Faltan columnas requeridas: ${missingHeaders.join(
+                  ", "
+                )}`,
                 hint: `Headers encontrados: ${headers.join(", ")}`,
               })}\n\n`
             )
@@ -169,7 +171,7 @@ export async function POST(req: NextRequest) {
 
         // Procesar en lotes
         const totalBatches = Math.ceil(rows.length / BATCH_SIZE);
-        
+
         for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
           const batchStart = batchIndex * BATCH_SIZE;
           const batchEnd = Math.min(batchStart + BATCH_SIZE, rows.length);

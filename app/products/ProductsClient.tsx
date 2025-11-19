@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import Link from "next/link";
 import { useTheme } from "@/contexts/ThemeContext";
 import { formatPrice } from "@/lib/utils";
@@ -31,6 +31,165 @@ type ProductsClientProps = {
   readonly totalProducts: number;
 };
 
+type FilterContentProps = {
+  readonly searchTerm: string;
+  readonly debouncedSearchTerm: string;
+  readonly categoryFilter: string;
+  readonly minPrice: string;
+  readonly maxPrice: string;
+  readonly inStock: boolean;
+  readonly sortBy: string;
+  readonly categories: string[];
+  readonly onSearchChange: (value: string) => void;
+  readonly onCategoryChange: (value: string) => void;
+  readonly onMinPriceChange: (value: string) => void;
+  readonly onMaxPriceChange: (value: string) => void;
+  readonly onInStockChange: (value: boolean) => void;
+  readonly onSortByChange: (value: string) => void;
+};
+
+const FilterContent = memo(
+  ({
+    searchTerm,
+    debouncedSearchTerm,
+    categoryFilter,
+    minPrice,
+    maxPrice,
+    inStock,
+    sortBy,
+    categories,
+    onSearchChange,
+    onCategoryChange,
+    onMinPriceChange,
+    onMaxPriceChange,
+    onInStockChange,
+    onSortByChange,
+  }: FilterContentProps) => (
+    <div className="space-y-4">
+      {/* Búsqueda */}
+      <div>
+        <label htmlFor="search" className="label">
+          Buscar
+        </label>
+        <div className="relative">
+          <input
+            id="search"
+            type="text"
+            className="input pr-10"
+            placeholder="Nombre o descripción..."
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+          />
+          {searchTerm !== debouncedSearchTerm && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              <svg
+                className="animate-spin h-5 w-5 text-blue-400"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  fill="none"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Categoría */}
+      {categories.length > 0 && (
+        <div>
+          <label htmlFor="category" className="label">
+            Categoría
+          </label>
+          <select
+            id="category"
+            className="input"
+            value={categoryFilter}
+            onChange={(e) => onCategoryChange(e.target.value)}
+          >
+            <option value="all">Todas las categorías</option>
+            {categories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Rango de precio */}
+      <div>
+        <label htmlFor="minPrice" className="label">
+          Rango de precio
+        </label>
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            id="minPrice"
+            type="number"
+            className="input"
+            placeholder="Mín"
+            value={minPrice}
+            onChange={(e) => onMinPriceChange(e.target.value)}
+          />
+          <input
+            id="maxPrice"
+            type="number"
+            className="input"
+            placeholder="Máx"
+            value={maxPrice}
+            onChange={(e) => onMaxPriceChange(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* Stock disponible */}
+      <div>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={inStock}
+            onChange={(e) => onInStockChange(e.target.checked)}
+            className="w-4 h-4 text-blue-600 rounded"
+          />
+          <span className="text-sm font-medium">Solo con stock disponible</span>
+        </label>
+      </div>
+
+      {/* Ordenar por */}
+      <div>
+        <label htmlFor="sortBy" className="label">
+          Ordenar por
+        </label>
+        <select
+          id="sortBy"
+          className="input"
+          value={sortBy}
+          onChange={(e) => onSortByChange(e.target.value)}
+        >
+          <option value="newest">Más recientes</option>
+          <option value="price-asc">Precio: menor a mayor</option>
+          <option value="price-desc">Precio: mayor a menor</option>
+          <option value="name-asc">Nombre: A-Z</option>
+          <option value="name-desc">Nombre: Z-A</option>
+        </select>
+      </div>
+    </div>
+  )
+);
+
+FilterContent.displayName = "FilterContent";
+
 export default function ProductsClient({
   categories,
   totalProducts,
@@ -39,6 +198,7 @@ export default function ProductsClient({
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -49,6 +209,15 @@ export default function ProductsClient({
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(totalProducts);
   const itemsPerPage = 12;
+
+  // Debounce para el searchTerm
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // 500ms de delay
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   // Fetch products from API
   useEffect(() => {
@@ -61,7 +230,7 @@ export default function ProductsClient({
           sortBy,
         });
 
-        if (searchTerm) params.append("search", searchTerm);
+        if (debouncedSearchTerm) params.append("search", debouncedSearchTerm);
         if (categoryFilter !== "all") params.append("category", categoryFilter);
         if (minPrice) params.append("minPrice", minPrice);
         if (maxPrice) params.append("maxPrice", maxPrice);
@@ -83,7 +252,7 @@ export default function ProductsClient({
     fetchProducts();
   }, [
     currentPage,
-    searchTerm,
+    debouncedSearchTerm,
     categoryFilter,
     minPrice,
     maxPrice,
@@ -97,7 +266,14 @@ export default function ProductsClient({
       setCurrentPage(1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, categoryFilter, minPrice, maxPrice, inStock, sortBy]);
+  }, [
+    debouncedSearchTerm,
+    categoryFilter,
+    minPrice,
+    maxPrice,
+    inStock,
+    sortBy,
+  ]);
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -140,104 +316,6 @@ export default function ProductsClient({
     return labels;
   };
 
-  const FilterContent = () => (
-    <div className="space-y-4">
-      {/* Búsqueda */}
-      <div>
-        <label htmlFor="search" className="label">
-          Buscar
-        </label>
-        <input
-          id="search"
-          type="text"
-          className="input"
-          placeholder="Nombre o descripción..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-
-      {/* Categoría */}
-      {categories.length > 0 && (
-        <div>
-          <label htmlFor="category" className="label">
-            Categoría
-          </label>
-          <select
-            id="category"
-            className="input"
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-          >
-            <option value="all">Todas las categorías</option>
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {/* Rango de precio */}
-      <div>
-        <label htmlFor="minPrice" className="label">
-          Rango de precio
-        </label>
-        <div className="grid grid-cols-2 gap-2">
-          <input
-            id="minPrice"
-            type="number"
-            className="input"
-            placeholder="Mín"
-            value={minPrice}
-            onChange={(e) => setMinPrice(e.target.value)}
-          />
-          <input
-            id="maxPrice"
-            type="number"
-            className="input"
-            placeholder="Máx"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {/* Stock disponible */}
-      <div>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={inStock}
-            onChange={(e) => setInStock(e.target.checked)}
-            className="w-4 h-4 text-blue-600 rounded"
-          />
-          <span className="text-sm font-medium">Solo con stock disponible</span>
-        </label>
-      </div>
-
-      {/* Ordenar por */}
-      <div>
-        <label htmlFor="sortBy" className="label">
-          Ordenar por
-        </label>
-        <select
-          id="sortBy"
-          className="input"
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-        >
-          <option value="newest">Más recientes</option>
-          <option value="price-asc">Precio: menor a mayor</option>
-          <option value="price-desc">Precio: mayor a menor</option>
-          <option value="name-asc">Nombre: A-Z</option>
-          <option value="name-desc">Nombre: Z-A</option>
-        </select>
-      </div>
-    </div>
-  );
-
   const startIndex = (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, total);
 
@@ -259,6 +337,7 @@ export default function ProductsClient({
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-lg">Filtros</h2>
                 <button
+                  type="button"
                   onClick={clearFilters}
                   className="text-sm text-blue-400 hover:text-blue-300"
                 >
@@ -266,7 +345,22 @@ export default function ProductsClient({
                 </button>
               </div>
 
-              <FilterContent />
+              <FilterContent
+                searchTerm={searchTerm}
+                debouncedSearchTerm={debouncedSearchTerm}
+                categoryFilter={categoryFilter}
+                minPrice={minPrice}
+                maxPrice={maxPrice}
+                inStock={inStock}
+                sortBy={sortBy}
+                categories={categories}
+                onSearchChange={setSearchTerm}
+                onCategoryChange={setCategoryFilter}
+                onMinPriceChange={setMinPrice}
+                onMaxPriceChange={setMaxPrice}
+                onInStockChange={setInStock}
+                onSortByChange={setSortBy}
+              />
 
               {/* Resultados */}
               <div className="mt-6 pt-4 border-t border-white/10">
@@ -341,24 +435,41 @@ export default function ProductsClient({
 
                   {/* Contenido */}
                   <div className="p-4">
-                    <FilterContent />
+                    <FilterContent
+                      searchTerm={searchTerm}
+                      debouncedSearchTerm={debouncedSearchTerm}
+                      categoryFilter={categoryFilter}
+                      minPrice={minPrice}
+                      maxPrice={maxPrice}
+                      inStock={inStock}
+                      sortBy={sortBy}
+                      categories={categories}
+                      onSearchChange={setSearchTerm}
+                      onCategoryChange={setCategoryFilter}
+                      onMinPriceChange={setMinPrice}
+                      onMaxPriceChange={setMaxPrice}
+                      onInStockChange={setInStock}
+                      onSortByChange={setSortBy}
+                    />
 
-                    {/* Resultados */}
-                    <div className="mt-6 pt-4 border-t border-white/10">
-                      <p className="text-sm text-white/60">
-                        {total > 0 ? (
-                          <>
-                            Mostrando{" "}
-                            <span className="font-semibold text-white">
-                              {startIndex}-{endIndex}
-                            </span>{" "}
-                            de {total} producto{total !== 1 ? "s" : ""}
-                          </>
-                        ) : (
-                          "0 productos encontrados"
-                        )}
-                      </p>
-                    </div>
+                    {
+                      /* Resultados */
+                      <div className="mt-6 pt-4 border-t border-white/10">
+                        <p className="text-sm text-white/60">
+                          {total > 0 ? (
+                            <>
+                              Mostrando{" "}
+                              <span className="font-semibold text-white">
+                                {startIndex}-{endIndex}
+                              </span>{" "}
+                              de {total} producto{total !== 1 ? "s" : ""}
+                            </>
+                          ) : (
+                            "0 productos encontrados"
+                          )}
+                        </p>
+                      </div>
+                    }
 
                     {/* Botón aplicar */}
                     <button

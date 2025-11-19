@@ -72,15 +72,15 @@ export default function ProductImporter() {
 
       // Leer el stream
       let buffer = "";
-      
+
       while (true) {
         const { done, value } = await reader.read();
-        
+
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n\n");
-        
+
         // Guardar la última línea incompleta
         buffer = lines.pop() || "";
 
@@ -112,11 +112,13 @@ export default function ProductImporter() {
                 setProgress(null);
                 setFile(null);
                 showToast("Importación completada exitosamente", "success");
-                
+
                 // Reset input
-                const input = document.getElementById("file-input") as HTMLInputElement;
+                const input = document.getElementById(
+                  "file-input"
+                ) as HTMLInputElement;
                 if (input) input.value = "";
-                
+
                 // Recargar página después de 2 segundos
                 setTimeout(() => {
                   globalThis.location.reload();
@@ -137,7 +139,8 @@ export default function ProductImporter() {
       }
     } catch (err) {
       console.error("Error uploading file:", err);
-      const errorMsg = err instanceof Error ? err.message : "Error al subir el archivo";
+      const errorMsg =
+        err instanceof Error ? err.message : "Error al subir el archivo";
       setError(errorMsg);
       showToast(errorMsg, "error");
       setProgress(null);
@@ -201,7 +204,9 @@ PROD003	AirPods Pro	Accesorios	Apple	APP2023	100	249.99	Auriculares inalámbrico
 
       {/* Selector de archivo */}
       <div className="mb-6">
-        <label htmlFor="file-input" className="label">Seleccionar archivo</label>
+        <label htmlFor="file-input" className="label">
+          Seleccionar archivo
+        </label>
         <div className="flex gap-3">
           <input
             id="file-input"
@@ -219,8 +224,20 @@ PROD003	AirPods Pro	Accesorios	Apple	APP2023	100	249.99	Auriculares inalámbrico
             {uploading ? (
               <span className="flex items-center gap-2">
                 <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
                 </svg>
                 Procesando...
               </span>
@@ -241,12 +258,10 @@ PROD003	AirPods Pro	Accesorios	Apple	APP2023	100	249.99	Auriculares inalámbrico
       {progress && (
         <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg p-4 mb-4">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="font-semibold text-blue-400">
-              {progress.message}
-            </h3>
+            <h3 className="font-semibold text-blue-400">{progress.message}</h3>
             <span className="text-blue-300 font-bold">{progress.percent}%</span>
           </div>
-          
+
           {/* Barra de progreso */}
           <div className="w-full bg-black/30 rounded-full h-3 mb-3 overflow-hidden">
             <div
@@ -267,19 +282,25 @@ PROD003	AirPods Pro	Accesorios	Apple	APP2023	100	249.99	Auriculares inalámbrico
               {progress.created !== undefined && (
                 <div className="bg-green-500/20 rounded-lg p-2 text-center">
                   <div className="text-green-400/80 text-xs">Creados</div>
-                  <div className="text-green-300 font-semibold">{progress.created}</div>
+                  <div className="text-green-300 font-semibold">
+                    {progress.created}
+                  </div>
                 </div>
               )}
               {progress.updated !== undefined && (
                 <div className="bg-yellow-500/20 rounded-lg p-2 text-center">
                   <div className="text-yellow-400/80 text-xs">Actualizados</div>
-                  <div className="text-yellow-300 font-semibold">{progress.updated}</div>
+                  <div className="text-yellow-300 font-semibold">
+                    {progress.updated}
+                  </div>
                 </div>
               )}
               {progress.errors !== undefined && progress.errors > 0 && (
                 <div className="bg-red-500/20 rounded-lg p-2 text-center">
                   <div className="text-red-400/80 text-xs">Errores</div>
-                  <div className="text-red-300 font-semibold">{progress.errors}</div>
+                  <div className="text-red-300 font-semibold">
+                    {progress.errors}
+                  </div>
                 </div>
               )}
             </div>

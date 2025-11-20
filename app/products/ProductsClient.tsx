@@ -385,16 +385,10 @@ export default function ProductsClient({
           {showFilters && (
             <>
               {/* Overlay */}
-              <div
+              <button
+                type="button"
                 className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
                 onClick={() => setShowFilters(false)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    setShowFilters(false);
-                  }
-                }}
               />
 
               {/* Bottom Sheet */}

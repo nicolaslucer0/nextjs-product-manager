@@ -1,10 +1,7 @@
 "use client";
-import { deleteProduct } from "@/app/admin/actions";
 import { deleteAllProducts } from "@/app/admin/deleteAllActions";
-import { toggleFeatured } from "@/app/admin/featuredActions";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useToast } from "@/contexts/ToastContext";
-import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import CategoryConfigManager from "./CategoryConfigManager";
@@ -13,6 +10,10 @@ import ProductForm from "./ProductForm";
 import ProductImporter from "./ProductImporter";
 import SocialLinksManager from "./SocialLinksManager";
 import UserManagement from "./UserManagement";
+import StatsCard from "./admin/StatsCard";
+import TabNavigation from "./admin/TabNavigation";
+import ProductTableRow from "./admin/ProductTableRow";
+import ProductFilters from "./admin/ProductFilters";
 
 type Variant = {
   _id?: string;
@@ -88,7 +89,7 @@ export default function AdminDashboard({ products, users, stats }: Props) {
   // Obtener categorías únicas
   const categories = Array.from(
     new Set(localProducts.map((p) => p.category).filter(Boolean))
-  ).sort();
+  ).sort((a, b) => (a || "").localeCompare(b || ""));
 
   // Filtrar productos según búsqueda y categoría
   const filteredProducts = localProducts.filter((product) => {
@@ -110,6 +111,24 @@ export default function AdminDashboard({ products, users, stats }: Props) {
   const endIndex = startIndex + itemsPerPage;
   const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
 
+  // Handler para actualizar el estado featured de un producto
+  const handleFeaturedToggle = (
+    productId: string,
+    newFeaturedState: boolean
+  ) => {
+    setLocalProducts((prevProducts) =>
+      prevProducts.map((p) =>
+        p._id === productId ? { ...p, featured: newFeaturedState } : p
+      )
+    );
+  };
+
+  // Handler para editar un producto
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setShowCreateProduct(false);
+  };
+
   return (
     <div className="min-h-screen bg-transparent">
       <div className="container mx-auto py-8">
@@ -126,210 +145,84 @@ export default function AdminDashboard({ products, users, stats }: Props) {
         </div>
 
         {/* Tabs - Responsive */}
-        <div className="mb-6">
-          {/* Mobile: Dropdown */}
-          <div className="sm:hidden">
-            <select
-              value={activeTab}
-              onChange={(e) => setActiveTab(e.target.value as any)}
-              className="w-full card py-3 px-4 text-white bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            >
-              <option value="products">
-                📦 Productos ({stats.totalProducts})
-              </option>
-              {isAdmin && (
-                <option value="users">👥 Usuarios ({stats.totalUsers})</option>
-              )}
-              <option value="social">🌐 Redes Sociales</option>
-              <option value="import">📥 Importar Excel</option>
-              <option value="config">⚙️ Configuración</option>
-              <option value="overview">📊 Resumen</option>
-            </select>
-          </div>
-
-          {/* Desktop: Horizontal Tabs */}
-          <div className="hidden sm:block border-b border-white/10">
-            <nav className="flex gap-4 lg:gap-8 overflow-x-auto scrollbar-hide">
-              <button
-                onClick={() => setActiveTab("products")}
-                className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap text-sm lg:text-base ${
-                  activeTab === "products"
-                    ? "border-blue-400 text-blue-400"
-                    : "border-transparent text-white/50 hover:text-white/70"
-                }`}
-              >
-                📦 Productos ({stats.totalProducts})
-              </button>
-              {isAdmin && (
-                <button
-                  onClick={() => setActiveTab("users")}
-                  className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap text-sm lg:text-base ${
-                    activeTab === "users"
-                      ? "border-blue-400 text-blue-400"
-                      : "border-transparent text-white/50 hover:text-white/70"
-                  }`}
-                >
-                  👥 Usuarios ({stats.totalUsers})
-                </button>
-              )}
-              <button
-                onClick={() => setActiveTab("social")}
-                className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap text-sm lg:text-base ${
-                  activeTab === "social"
-                    ? "border-blue-400 text-blue-400"
-                    : "border-transparent text-white/50 hover:text-white/70"
-                }`}
-              >
-                🌐 Redes Sociales
-              </button>
-              <button
-                onClick={() => setActiveTab("import")}
-                className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap text-sm lg:text-base ${
-                  activeTab === "import"
-                    ? "border-blue-400 text-blue-400"
-                    : "border-transparent text-white/50 hover:text-white/70"
-                }`}
-              >
-                📥 Importar Excel
-              </button>
-              <button
-                onClick={() => setActiveTab("config")}
-                className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap text-sm lg:text-base ${
-                  activeTab === "config"
-                    ? "border-blue-400 text-blue-400"
-                    : "border-transparent text-white/50 hover:text-white/70"
-                }`}
-              >
-                ⚙️ Configuración
-              </button>
-              <button
-                onClick={() => setActiveTab("overview")}
-                className={`pb-4 px-1 border-b-2 font-medium transition-colors whitespace-nowrap text-sm lg:text-base ${
-                  activeTab === "overview"
-                    ? "border-blue-400 text-blue-400"
-                    : "border-transparent text-white/50 hover:text-white/70"
-                }`}
-              >
-                📊 Resumen
-              </button>
-            </nav>
-          </div>
-        </div>
+        <TabNavigation
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          isAdmin={isAdmin}
+          stats={{
+            totalProducts: stats.totalProducts,
+            totalUsers: stats.totalUsers,
+          }}
+        />
 
         {/* Overview Tab */}
         {activeTab === "overview" && (
           <div className="space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="card">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-white/60 mb-1">
-                      Total Productos
-                    </p>
-                    <p className="text-3xl font-bold">{stats.totalProducts}</p>
-                  </div>
-                  <div className="bg-blue-500/20 rounded-full p-3">
-                    <svg
-                      className="w-8 h-8 text-blue-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+              <StatsCard
+                title="Total Productos"
+                value={stats.totalProducts}
+                bgColor="bg-blue-500/20"
+                textColor="text-blue-400"
+                icon={
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                  />
+                }
+              />
 
               {isAdmin && (
                 <>
-                  <div className="card">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-white/60 mb-1">
-                          Total Usuarios
-                        </p>
-                        <p className="text-3xl font-bold">{stats.totalUsers}</p>
-                      </div>
-                      <div className="bg-green-500/20 rounded-full p-3">
-                        <svg
-                          className="w-8 h-8 text-green-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="card">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-white/60 mb-1">
-                          Usuarios Pendientes
-                        </p>
-                        <p className="text-3xl font-bold">
-                          {stats.pendingUsers}
-                        </p>
-                      </div>
-                      <div className="bg-orange-500/20 rounded-full p-3">
-                        <svg
-                          className="w-8 h-8 text-orange-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              <div className="card">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-white/60 mb-1">Stock Bajo</p>
-                    <p className="text-3xl font-bold">
-                      {stats.lowStockProducts}
-                    </p>
-                  </div>
-                  <div className="bg-red-500/20 rounded-full p-3">
-                    <svg
-                      className="w-8 h-8 text-red-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                  <StatsCard
+                    title="Total Usuarios"
+                    value={stats.totalUsers}
+                    bgColor="bg-green-500/20"
+                    textColor="text-green-400"
+                    icon={
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
                       />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+                    }
+                  />
+
+                  <StatsCard
+                    title="Usuarios Pendientes"
+                    value={stats.pendingUsers}
+                    bgColor="bg-orange-500/20"
+                    textColor="text-orange-400"
+                    icon={
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    }
+                  />
+                </>
+              )}
+
+              <StatsCard
+                title="Stock Bajo"
+                value={stats.lowStockProducts}
+                bgColor="bg-red-500/20"
+                textColor="text-red-400"
+                icon={
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                }
+              />
             </div>
 
             {/* Quick Actions */}
@@ -456,6 +349,7 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                         );
                       }
                     } catch (error) {
+                      console.error("Error al eliminar productos:", error);
                       showToast("Error al eliminar productos", "error");
                     }
                   }}
@@ -546,95 +440,36 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                 </h3>
 
                 {/* Filtros */}
-                <div className="flex flex-col md:flex-row gap-4">
-                  {/* Selector de categoría */}
-                  <select
-                    value={categoryFilter}
-                    onChange={(e) => setCategoryFilter(e.target.value)}
-                    className={`px-4 py-2 rounded-lg border transition-colors ${
-                      theme === "light"
-                        ? "bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                        : "bg-white/5 border-white/10 text-white focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
-                    }`}
-                  >
-                    <option value="all">Todas las categorías</option>
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
-
-                  {/* Buscador */}
-                  <div className="relative flex-1 md:max-w-md">
-                    <input
-                      type="text"
-                      placeholder="Buscar por nombre o ID..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className={`w-full px-4 py-2 pl-10 rounded-lg border transition-colors ${
-                        theme === "light"
-                          ? "bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                          : "bg-white/5 border-white/10 text-white placeholder-white/40 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
-                      }`}
-                    />
-                    <svg
-                      className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
-                        theme === "light" ? "text-gray-400" : "text-white/40"
-                      }`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                    {searchQuery && (
-                      <button
-                        onClick={() => setSearchQuery("")}
-                        className={`absolute right-3 top-1/2 -translate-y-1/2 ${
-                          theme === "light"
-                            ? "text-gray-400 hover:text-gray-600"
-                            : "text-white/40 hover:text-white/60"
-                        }`}
-                      >
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                </div>
+                <ProductFilters
+                  searchQuery={searchQuery}
+                  categoryFilter={categoryFilter}
+                  categories={categories as string[]}
+                  theme={theme}
+                  onSearchChange={setSearchQuery}
+                  onCategoryChange={setCategoryFilter}
+                />
               </div>
 
               {/* Resultados de búsqueda */}
-              {searchQuery && (
-                <p
-                  className={`text-sm mb-4 ${
-                    theme === "light" ? "text-gray-600" : "text-white/60"
-                  }`}
-                >
-                  {filteredProducts.length === 0
-                    ? "No se encontraron productos"
-                    : `Se encontraron ${filteredProducts.length} producto${
-                        filteredProducts.length === 1 ? "" : "s"
+              {searchQuery &&
+                (() => {
+                  const productCount = filteredProducts.length;
+                  const pluralSuffix = productCount === 1 ? "" : "s";
+                  const message =
+                    productCount === 0
+                      ? "No se encontraron productos"
+                      : `Se encontraron ${productCount} producto${pluralSuffix}`;
+
+                  return (
+                    <p
+                      className={`text-sm mb-4 ${
+                        theme === "light" ? "text-gray-600" : "text-white/60"
                       }`}
-                </p>
-              )}
+                    >
+                      {message}
+                    </p>
+                  );
+                })()}
 
               {filteredProducts.length === 0 ? (
                 <div className="text-center py-12">
@@ -701,214 +536,14 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                       </thead>
                       <tbody>
                         {paginatedProducts.map((product) => (
-                          <tr
+                          <ProductTableRow
                             key={product._id}
-                            className={`border-b transition-colors ${
-                              theme === "light"
-                                ? "border-gray-100 hover:bg-gray-50"
-                                : "border-white/5 hover:bg-white/5"
-                            }`}
-                          >
-                            {/* Imagen */}
-                            <td className="py-3 px-2">
-                              <div className="w-16 h-16 rounded-lg overflow-hidden">
-                                {product.images && product.images.length > 0 ? (
-                                  <img
-                                    src={product.images[0]}
-                                    alt={product.title}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div
-                                    className={`w-full h-full ${
-                                      theme === "light"
-                                        ? "bg-gray-100"
-                                        : "bg-white/5"
-                                    }`}
-                                  />
-                                )}
-                              </div>
-                            </td>
-
-                            {/* Producto */}
-                            <td className="py-3 px-2">
-                              <div className="flex flex-col">
-                                <Link
-                                  href={`/products/${product._id}`}
-                                  className={`font-semibold hover:text-blue-400 ${
-                                    theme === "light"
-                                      ? "text-gray-900"
-                                      : "text-white"
-                                  }`}
-                                >
-                                  {product.title}
-                                </Link>
-                                <p
-                                  className={`text-xs mt-1 line-clamp-2 ${
-                                    theme === "light"
-                                      ? "text-gray-500"
-                                      : "text-white/50"
-                                  }`}
-                                >
-                                  {product.description}
-                                </p>
-                                {product.variants &&
-                                  product.variants.length > 0 && (
-                                    <div className="flex gap-1 mt-1">
-                                      {product.variants
-                                        .slice(0, 2)
-                                        .map((v, idx) => (
-                                          <span
-                                            key={idx}
-                                            className="text-xs px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400"
-                                          >
-                                            {v.name}
-                                          </span>
-                                        ))}
-                                      {product.variants.length > 2 && (
-                                        <span className="text-xs text-white/40">
-                                          +{product.variants.length - 2}
-                                        </span>
-                                      )}
-                                    </div>
-                                  )}
-                              </div>
-                            </td>
-
-                            {/* Categoría */}
-                            <td className="py-3 px-2 hidden md:table-cell">
-                              <span className="text-sm">
-                                {product.category || "-"}
-                              </span>
-                            </td>
-
-                            {/* Precio */}
-                            <td className="py-3 px-2">
-                              <span className="font-semibold">
-                                ${formatPrice(product.price)}
-                              </span>
-                            </td>
-
-                            {/* Stock */}
-                            <td className="py-3 px-2 hidden sm:table-cell">
-                              <span
-                                className={`text-sm ${
-                                  product.stock > 0
-                                    ? "text-green-400"
-                                    : "text-red-400"
-                                }`}
-                              >
-                                {product.stock}
-                              </span>
-                            </td>
-
-                            {/* Acciones */}
-                            <td className="py-3 px-2">
-                              <div className="flex gap-1 justify-end">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    (async () => {
-                                      try {
-                                        console.log(
-                                          "Toggling featured for product:",
-                                          product._id,
-                                          "Current featured:",
-                                          product.featured
-                                        );
-                                        const result = await toggleFeatured(
-                                          product._id
-                                        );
-                                        console.log("Toggle result:", result);
-
-                                        if (result.success) {
-                                          // Actualizar el estado local
-                                          setLocalProducts((prevProducts) =>
-                                            prevProducts.map((p) =>
-                                              p._id === product._id
-                                                ? {
-                                                    ...p,
-                                                    featured: result.featured,
-                                                  }
-                                                : p
-                                            )
-                                          );
-                                          showToast(
-                                            "Producto destacado actualizado",
-                                            "success"
-                                          );
-                                        } else {
-                                          showToast(
-                                            result.error ||
-                                              "Error al actualizar",
-                                            "error"
-                                          );
-                                        }
-                                      } catch (error) {
-                                        console.error(
-                                          "Error toggling featured:",
-                                          error
-                                        );
-                                        showToast(
-                                          "Error al actualizar producto",
-                                          "error"
-                                        );
-                                      }
-                                    })();
-                                  }}
-                                  className={`btn-icon ${
-                                    product.featured
-                                      ? "text-yellow-400"
-                                      : "text-white/40"
-                                  }`}
-                                  title={
-                                    product.featured
-                                      ? "Quitar de destacados"
-                                      : "Destacar en home"
-                                  }
-                                >
-                                  {product.featured ? "⭐" : "☆"}
-                                </button>
-                                <Link
-                                  href={`/products/${product._id}`}
-                                  className="btn-icon text-blue-400 hover:text-blue-300"
-                                  title="Ver detalle"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  👁️
-                                </Link>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setEditingProduct(product);
-                                    setShowCreateProduct(false);
-                                    window.scrollTo({
-                                      top: 0,
-                                      behavior: "smooth",
-                                    });
-                                  }}
-                                  className="btn-icon text-green-400 hover:text-green-300"
-                                  title="Editar"
-                                >
-                                  ✏️
-                                </button>
-                                <form
-                                  onClick={(e) => e.stopPropagation()}
-                                  action={async () => {
-                                    await deleteProduct(product._id);
-                                  }}
-                                >
-                                  <button
-                                    type="submit"
-                                    className="btn-icon text-red-400 hover:text-red-300"
-                                    title="Eliminar"
-                                  >
-                                    🗑️
-                                  </button>
-                                </form>
-                              </div>
-                            </td>
-                          </tr>
+                            product={product}
+                            theme={theme}
+                            onEdit={handleEditProduct}
+                            onFeaturedToggle={handleFeaturedToggle}
+                            onToast={showToast}
+                          />
                         ))}
                       </tbody>
                     </table>

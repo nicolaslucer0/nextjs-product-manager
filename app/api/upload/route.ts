@@ -3,6 +3,8 @@ import { uploadToCloudinary } from "@/lib/cloudinary";
 import sharp from "sharp";
 import { uploadLimiter, getIP } from "@/lib/ratelimit";
 
+export const maxDuration = 30;
+
 export async function POST(request: NextRequest) {
   // Rate limiting
   if (uploadLimiter) {

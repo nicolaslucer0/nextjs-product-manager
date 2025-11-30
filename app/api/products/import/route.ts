@@ -3,6 +3,8 @@ import { connectDB } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import * as XLSX from "xlsx";
 
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   try {
     await connectDB();

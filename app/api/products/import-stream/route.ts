@@ -3,9 +3,7 @@ import { connectDB } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import * as XLSX from "xlsx";
 
-// Configurar para permitir respuestas grandes
-export const maxDuration = 300; // 5 minutos
-export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 const BATCH_SIZE = 50; // Procesar 50 productos a la vez
 

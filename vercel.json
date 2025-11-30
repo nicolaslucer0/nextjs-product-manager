@@ -1,14 +1,4 @@
 {
-  "functions": {
-    "app/api/**/*.ts": {
-      "maxDuration": 10,
-      "memory": 1024
-    },
-    "app/api/products/import-stream/route.ts": {
-      "maxDuration": 300,
-      "memory": 1024
-    }
-  },
   "headers": [
     {
       "source": "/(.*)",
@@ -43,12 +33,6 @@
           "value": "no-store, max-age=0"
         }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
     }
   ]
 }

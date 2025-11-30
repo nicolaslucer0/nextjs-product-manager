@@ -87,6 +87,25 @@ Se eliminó la sección `rewrites` que era innecesaria:
 }
 ```
 
+## Problema Adicional: Archivo middleware.ts Duplicado
+
+### Error
+```
+Error: Both middleware file "./middleware.ts" and proxy file "./proxy.ts" are detected. Please use "./proxy.ts" only.
+```
+
+### Causa
+Next.js 16 migró de `middleware.ts` a `proxy.ts`. Si ambos archivos existen, el build falla.
+
+### Solución
+Eliminar el archivo `middleware.ts`:
+
+```bash
+rm middleware.ts
+git add -A
+git commit -m "fix: Eliminar middleware.ts duplicado"
+```
+
 ## Verificación
 
 Para verificar que el build funciona correctamente:
@@ -114,6 +133,8 @@ Route (app)                      Revalidate  Expire
 2. **String.raw no es compatible**: Use strings simples con escapes normales
 3. **Simplicidad**: Si un valor es único, no use array
 4. **Debugging**: El error "see failures above" puede ser engañoso - no siempre hay mensajes previos específicos
+5. **Migración middleware → proxy**: Next.js 16 depreca `middleware.ts` en favor de `proxy.ts`, no pueden coexistir
+6. **Verificar archivos duplicados**: Siempre revisar que no existan ambos archivos antes de deployment
 
 ## Referencias
 

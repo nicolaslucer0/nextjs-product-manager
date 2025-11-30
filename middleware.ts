@@ -16,8 +16,8 @@ const BLOCKED_USER_AGENTS = [
 
 const MAX_REQUEST_SIZE = 10 * 1024 * 1024; // 10MB
 
-// Esta es la función proxy que Next.js ejecutará para cada request
-export function proxy(request: NextRequest) {
+// Esta es la función middleware que Next.js ejecutará para cada request
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 1. Verificar tamaño de request para endpoints de API
@@ -80,6 +80,14 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher:
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    String.raw`/((?!_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)`,
+  ],
 };

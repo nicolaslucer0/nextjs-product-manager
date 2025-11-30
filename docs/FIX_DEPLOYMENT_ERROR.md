@@ -90,14 +90,17 @@ Se eliminó la sección `rewrites` que era innecesaria:
 ## Problema Adicional: Archivo middleware.ts Duplicado
 
 ### Error
+
 ```
 Error: Both middleware file "./middleware.ts" and proxy file "./proxy.ts" are detected. Please use "./proxy.ts" only.
 ```
 
 ### Causa
+
 Next.js 16 migró de `middleware.ts` a `proxy.ts`. Si ambos archivos existen, el build falla.
 
 ### Solución
+
 Eliminar el archivo `middleware.ts`:
 
 ```bash

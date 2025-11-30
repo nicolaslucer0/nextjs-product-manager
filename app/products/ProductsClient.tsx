@@ -198,28 +198,54 @@ export default function ProductsClient({
   const { theme } = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  // Inicializar estados desde URL
-  const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchParams.get("search") || "");
-  const [sortBy, setSortBy] = useState(searchParams.get("sortBy") || "newest");
-  const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") || "");
-  const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "");
-  const [inStock, setInStock] = useState(searchParams.get("inStock") === "true");
-  const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get("category") || "all");
   const [showFilters, setShowFilters] = useState(false);
-  const [currentPage, setCurrentPage] = useState(Number(searchParams.get("page")) || 1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(totalProducts);
   const itemsPerPage = 12;
 
-  // Actualizar URL cuando cambian los filtros
+  // Flag para prevenir actualización de URL en primera carga
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Estados de filtros - inicializados con valores de URL
+  const [searchTerm, setSearchTerm] = useState(
+    () => searchParams.get("search") || ""
+  );
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(
+    () => searchParams.get("search") || ""
+  );
+  const [sortBy, setSortBy] = useState(
+    () => searchParams.get("sortBy") || "newest"
+  );
+  const [minPrice, setMinPrice] = useState(
+    () => searchParams.get("minPrice") || ""
+  );
+  const [maxPrice, setMaxPrice] = useState(
+    () => searchParams.get("maxPrice") || ""
+  );
+  const [inStock, setInStock] = useState(
+    () => searchParams.get("inStock") === "true"
+  );
+  const [categoryFilter, setCategoryFilter] = useState<string>(
+    () => searchParams.get("category") || "all"
+  );
+  const [currentPage, setCurrentPage] = useState(
+    () => Number(searchParams.get("page")) || 1
+  );
+
+  // Marcar como inicializado después del primer render
   useEffect(() => {
+    setIsInitialized(true);
+  }, []);
+
+  // Actualizar URL cuando cambian los filtros (solo después de inicialización)
+  useEffect(() => {
+    if (!isInitialized) return;
+
     const params = new URLSearchParams();
-    
+
     if (currentPage > 1) params.set("page", currentPage.toString());
     if (debouncedSearchTerm) params.set("search", debouncedSearchTerm);
     if (categoryFilter !== "all") params.set("category", categoryFilter);
@@ -227,12 +253,22 @@ export default function ProductsClient({
     if (maxPrice) params.set("maxPrice", maxPrice);
     if (inStock) params.set("inStock", "true");
     if (sortBy !== "newest") params.set("sortBy", sortBy);
-    
+
     const queryString = params.toString();
     const newUrl = queryString ? `/products?${queryString}` : "/products";
-    
-    router.replace(newUrl, { scroll: false });
-  }, [currentPage, debouncedSearchTerm, categoryFilter, minPrice, maxPrice, inStock, sortBy, router]);
+
+    router.push(newUrl, { scroll: false });
+  }, [
+    isInitialized,
+    currentPage,
+    debouncedSearchTerm,
+    categoryFilter,
+    minPrice,
+    maxPrice,
+    inStock,
+    sortBy,
+    router,
+  ]);
 
   // Debounce para el searchTerm
   useEffect(() => {

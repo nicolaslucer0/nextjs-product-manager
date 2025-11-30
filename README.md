@@ -139,10 +139,43 @@ Después de ejecutar `pnpm seed`:
 
 Consulta la [Guía de Componentes](./COMPONENTS.md) para aprender a modificar cada parte de la aplicación.
 
+## 🛡️ Seguridad y Protección de Costos
+
+Este proyecto incluye **múltiples capas de protección** contra ataques y control de costos:
+
+### Protecciones Implementadas:
+
+- ✅ **Rate Limiting** con Upstash Redis
+
+  - API General: 100 req/10s
+  - Escritura: 20 req/min
+  - Autenticación: 5 intentos/min
+  - Uploads: 10 archivos/min
+
+- ✅ **Límites de Funciones** (vercel.json)
+
+  - Timeout: 10s por defecto
+  - Memoria: 1GB máximo
+  - Imports: 5 minutos máx
+
+- ✅ **Proxy Middleware**
+
+  - Límite de payload: 10MB
+  - Bloqueo de bots y scrapers
+  - Headers de seguridad (XSS, CSRF, Clickjacking)
+  - Protección contra path traversal
+
+- ✅ **Estimación de costos en ataque**: < $1 USD
+
+📖 **Documentación completa**: Ver [docs/SEGURIDAD.md](./docs/SEGURIDAD.md) y [docs/ALERTAS.md](./docs/ALERTAS.md)
+
 ## 📚 Documentación adicional
 
 - [Guía de Componentes](./COMPONENTS.md) - Descripción detallada de cada componente
 - [API Reference](./API.md) - Documentación de las rutas API
+- [🛡️ Seguridad y Costos](./docs/SEGURIDAD.md) - Protecciones contra ataques
+- [📊 Alertas y Monitoreo](./docs/ALERTAS.md) - Configuración de alertas
+- [⚡ Rate Limiting](./docs/RATE_LIMITING.md) - Guía de límites de API
 
 ## 🤝 Contribuir
 

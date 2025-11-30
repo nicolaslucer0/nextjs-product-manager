@@ -10,15 +10,24 @@ html.light {
 }
 
 html.light body {
-  @apply bg-white text-gray-900;
+  @apply bg-gradient-to-br from-gray-50 via-white to-blue-50 text-gray-900;
 }
 
 html.light .card {
-  @apply bg-white border-gray-200 shadow-lg;
+  @apply bg-white/80 backdrop-blur-sm border-gray-200 shadow-lg;
 }
 
 html.light .input {
-  @apply bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-200;
+  @apply bg-white/90 border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-200 shadow-sm;
+}
+
+html.light .bg-white\/5 {
+  @apply bg-gray-50/80 backdrop-blur-sm;
+}
+
+html.light .border-white\/10,
+html.light .border-white\/20 {
+  @apply border-gray-200;
 }
 
 html.light .label {

@@ -52,6 +52,7 @@ export default function ProductForm({
   const [variantPrice, setVariantPrice] = useState<number>(0);
   const [variantStock, setVariantStock] = useState<number>(0);
   const [variantImage, setVariantImage] = useState("");
+  const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
 
   // Cargar datos del producto si está en modo edición
   useEffect(() => {
@@ -83,23 +84,58 @@ export default function ProductForm({
       return;
     }
 
-    const newVariant: Variant = {
-      id: Date.now().toString(),
-      name: variantName,
-      type: variantType,
-      price: variantPrice,
-      stock: variantStock,
-      image: variantImage,
-    };
-
-    setVariants([...variants, newVariant]);
+    if (editingVariantId) {
+      // Editar variante existente
+      setVariants(
+        variants.map((v) =>
+          v.id === editingVariantId
+            ? {
+                ...v,
+                name: variantName,
+                type: variantType,
+                price: variantPrice,
+                stock: variantStock,
+                image: variantImage,
+              }
+            : v
+        )
+      );
+      showToast("Variante actualizada", "success");
+    } else {
+      // Agregar nueva variante
+      const newVariant: Variant = {
+        id: Date.now().toString(),
+        name: variantName,
+        type: variantType,
+        price: variantPrice,
+        stock: variantStock,
+        image: variantImage,
+      };
+      setVariants([...variants, newVariant]);
+      showToast("Variante agregada", "success");
+    }
 
     // Reset form
+    resetVariantForm();
+  }
+
+  function resetVariantForm() {
     setVariantName("");
     setVariantPrice(0);
     setVariantStock(0);
     setVariantImage("");
+    setEditingVariantId(null);
     setShowVariantForm(false);
+  }
+
+  function editVariant(variant: Variant) {
+    setVariantName(variant.name);
+    setVariantType(variant.type);
+    setVariantPrice(variant.price);
+    setVariantStock(variant.stock);
+    setVariantImage(variant.image);
+    setEditingVariantId(variant.id);
+    setShowVariantForm(true);
   }
 
   function removeVariant(id: string) {
@@ -179,6 +215,7 @@ export default function ProductForm({
         showToast(error.error || "Error al guardar el producto", "error");
       }
     } catch (error) {
+      console.error("Error saving product:", error);
       showToast("Error al guardar el producto", "error");
     } finally {
       setLoading(false);
@@ -280,23 +317,6 @@ export default function ProductForm({
         />
       </div>
 
-      <div>
-        <label htmlFor="stock" className="label">
-          Stock base
-        </label>
-        <input
-          id="stock"
-          className="input"
-          type="number"
-          value={stock}
-          onChange={(e) => setStock(Number(e.target.value))}
-          placeholder="0"
-        />
-        <p className="text-xs text-white/50 mt-1">
-          Stock general (si no usas variantes)
-        </p>
-      </div>
-
       {/* Imágenes del producto */}
       <div>
         <ImageUploader
@@ -311,7 +331,7 @@ export default function ProductForm({
           <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
             {images.map((img, index) => (
               <div
-                key={index}
+                key={img}
                 className="relative group aspect-square rounded-lg overflow-hidden bg-white/5 border border-white/10"
               >
                 <img
@@ -360,7 +380,13 @@ export default function ProductForm({
           </div>
           <button
             type="button"
-            onClick={() => setShowVariantForm(!showVariantForm)}
+            onClick={() => {
+              if (showVariantForm) {
+                resetVariantForm();
+              } else {
+                setShowVariantForm(true);
+              }
+            }}
             className="btn bg-blue-600 text-white hover:bg-blue-700"
           >
             {showVariantForm ? "Cancelar" : "+ Agregar variante"}
@@ -474,7 +500,7 @@ export default function ProductForm({
               onClick={addVariant}
               className="btn bg-green-600 text-white hover:bg-green-700"
             >
-              Guardar variante
+              {editingVariantId ? "Actualizar variante" : "Guardar variante"}
             </button>
           </div>
         )}
@@ -518,25 +544,48 @@ export default function ProductForm({
                       </div>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeVariant(variant.id)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => editVariant(variant)}
+                      className="text-blue-400 hover:text-blue-300"
+                      title="Editar variante"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeVariant(variant.id)}
+                      className="text-red-600 hover:text-red-800"
+                      title="Eliminar variante"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

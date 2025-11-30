@@ -56,6 +56,47 @@ export const uploadLimiter = redis
 
 // Función helper para obtener IP del cliente
 export function getIP(request: Request): string {
+  // En Vercel, usar x-real-ip o x-forwarded-for
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp) return realIp;
+
   const xff = request.headers.get("x-forwarded-for");
-  return xff ? xff.split(",")[0] : "127.0.0.1";
+  return xff ? xff.split(",")[0].trim() : "127.0.0.1";
+}
+
+// Función para verificar rate limit y devolver respuesta con headers
+export async function checkRateLimit(
+  limiter: Ratelimit | null,
+  identifier: string
+): Promise<{ success: boolean; response?: Response }> {
+  if (!limiter) return { success: true };
+
+  const { success, limit, remaining, reset } = await limiter.limit(identifier);
+
+  if (!success) {
+    const headers = new Headers({
+      "Content-Type": "application/json",
+      "X-RateLimit-Limit": limit.toString(),
+      "X-RateLimit-Remaining": remaining.toString(),
+      "X-RateLimit-Reset": reset.toString(),
+      "Retry-After": Math.ceil((reset - Date.now()) / 1000).toString(),
+    });
+
+    return {
+      success: false,
+      response: new Response(
+        JSON.stringify({
+          error: "Too many requests",
+          message: "Rate limit exceeded. Please try again later.",
+          retryAfter: Math.ceil((reset - Date.now()) / 1000),
+        }),
+        {
+          status: 429,
+          headers,
+        }
+      ),
+    };
+  }
+
+  return { success: true };
 }

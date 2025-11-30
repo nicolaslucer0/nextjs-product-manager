@@ -92,12 +92,12 @@ export default function ProductDetailClient({ product }: Props) {
           {/* Galería de imágenes */}
           <div className="space-y-4">
             {/* Imagen principal */}
-            <div className="card rounded-2xl overflow-hidden aspect-square">
+            <div className="card rounded-2xl overflow-hidden aspect-square flex items-center justify-center bg-white/5">
               {selectedImage ? (
                 <img
                   src={selectedImage}
                   alt={product.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain p-4"
                 />
               ) : (
                 <ImagePlaceholder size="lg" className="bg-white/5" />
@@ -111,16 +111,16 @@ export default function ProductDetailClient({ product }: Props) {
                   <button
                     key={index}
                     onClick={() => setSelectedImage(img)}
-                    className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                    className={`aspect-square rounded-lg overflow-hidden border-2 transition-all flex items-center justify-center ${
                       selectedImage === img
-                        ? "border-blue-400 shadow-lg shadow-blue-500/20"
-                        : "border-white/10 hover:border-white/30"
+                        ? "border-blue-400 shadow-lg shadow-blue-500/20 bg-blue-500/10"
+                        : "border-white/10 hover:border-white/30 bg-white/5"
                     }`}
                   >
                     <img
                       src={img}
                       alt={`${product.title} ${index + 1}`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain p-1"
                     />
                   </button>
                 ))}

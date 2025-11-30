@@ -332,12 +332,12 @@ export default function ProductForm({
             {images.map((img, index) => (
               <div
                 key={img}
-                className="relative group aspect-square rounded-lg overflow-hidden bg-white/5 border border-white/10"
+                className="relative group aspect-square rounded-lg overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center"
               >
                 <img
                   src={img}
                   alt={`Producto ${index + 1}`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain p-2"
                 />
                 <button
                   type="button"
@@ -470,7 +470,7 @@ export default function ProductForm({
                   <img
                     src={variantImage}
                     alt="Vista previa"
-                    className="w-32 h-32 object-cover rounded-lg border border-white/20"
+                    className="w-32 h-32 object-contain rounded-lg border border-white/20 bg-white/5 p-2"
                   />
                   <button
                     type="button"
@@ -522,7 +522,7 @@ export default function ProductForm({
                       <img
                         src={variant.image}
                         alt={variant.name}
-                        className="w-16 h-16 object-cover rounded"
+                        className="w-16 h-16 object-contain rounded bg-white/5 p-1"
                       />
                     )}
                     <div>

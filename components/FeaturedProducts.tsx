@@ -55,7 +55,7 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
                   <img
                     src={product.images[0]}
                     alt={product.title}
-                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                    className="w-full h-full object-contain p-2 transition-transform group-hover:scale-105"
                   />
                 ) : (
                   <ImagePlaceholder size="md" />

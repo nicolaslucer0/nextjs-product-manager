@@ -80,12 +80,12 @@ export default function ProductTableRow({
     <tr className={rowClasses}>
       {/* Imagen */}
       <td className="py-3 px-2">
-        <div className="w-16 h-16 rounded-lg overflow-hidden">
+        <div className="w-16 h-16 rounded-lg overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-white/5">
           {product.images?.length > 0 ? (
             <img
               src={product.images[0]}
               alt={product.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain p-1"
             />
           ) : (
             <div

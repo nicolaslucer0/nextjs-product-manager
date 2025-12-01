@@ -256,8 +256,12 @@ export default function ProductsClient({
 
     const queryString = params.toString();
     const newUrl = queryString ? `/products?${queryString}` : "/products";
-
-    router.push(newUrl, { scroll: false });
+    
+    // Solo actualizar si la URL es diferente
+    const currentUrl = window.location.pathname + window.location.search;
+    if (currentUrl !== newUrl) {
+      router.replace(newUrl, { scroll: false });
+    }
   }, [
     isInitialized,
     currentPage,

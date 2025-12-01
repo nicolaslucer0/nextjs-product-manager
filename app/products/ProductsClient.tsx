@@ -240,6 +240,26 @@ export default function ProductsClient({
     setIsInitialized(true);
   }, []);
 
+  // Guardar y restaurar posición de scroll
+  useEffect(() => {
+    // Crear una clave única para este estado de filtros
+    const scrollKey = `products-scroll-${currentPage}-${categoryFilter}-${debouncedSearchTerm}`;
+    
+    // Restaurar posición de scroll guardada
+    const savedScroll = sessionStorage.getItem(scrollKey);
+    if (savedScroll) {
+      window.scrollTo(0, parseInt(savedScroll));
+    }
+
+    // Guardar posición de scroll cuando el usuario navega
+    const handleScroll = () => {
+      sessionStorage.setItem(scrollKey, window.scrollY.toString());
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [currentPage, categoryFilter, debouncedSearchTerm, products]);
+
   // Actualizar URL cuando cambian los filtros (solo después de inicialización)
   useEffect(() => {
     if (!isInitialized) return;
@@ -256,7 +276,7 @@ export default function ProductsClient({
 
     const queryString = params.toString();
     const newUrl = queryString ? `/products?${queryString}` : "/products";
-    
+
     // Solo actualizar si la URL es diferente
     const currentUrl = window.location.pathname + window.location.search;
     if (currentUrl !== newUrl) {
@@ -637,6 +657,7 @@ export default function ProductsClient({
                     <Link
                       key={product._id}
                       href={`/products/${product._id}`}
+                      scroll={false}
                       className="card hover:bg-white/10 transition-all group cursor-pointer"
                     >
                       {/* Imagen del producto */}

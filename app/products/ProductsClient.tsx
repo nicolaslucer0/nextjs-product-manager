@@ -40,6 +40,7 @@ type FilterContentProps = {
   readonly maxPrice: string;
   readonly inStock: boolean;
   readonly sortBy: string;
+  readonly itemsPerPage: number;
   readonly categories: string[];
   readonly onSearchChange: (value: string) => void;
   readonly onCategoryChange: (value: string) => void;
@@ -47,6 +48,7 @@ type FilterContentProps = {
   readonly onMaxPriceChange: (value: string) => void;
   readonly onInStockChange: (value: boolean) => void;
   readonly onSortByChange: (value: string) => void;
+  readonly onItemsPerPageChange: (value: number) => void;
 };
 
 const FilterContent = memo(
@@ -58,6 +60,7 @@ const FilterContent = memo(
     maxPrice,
     inStock,
     sortBy,
+    itemsPerPage,
     categories,
     onSearchChange,
     onCategoryChange,
@@ -65,6 +68,7 @@ const FilterContent = memo(
     onMaxPriceChange,
     onInStockChange,
     onSortByChange,
+    onItemsPerPageChange,
   }: FilterContentProps) => (
     <div className="space-y-4">
       {/* Búsqueda */}
@@ -185,6 +189,25 @@ const FilterContent = memo(
           <option value="name-desc">Nombre: Z-A</option>
         </select>
       </div>
+
+      {/* Productos por página */}
+      <div>
+        <label htmlFor="perPage" className="label">
+          Productos por página
+        </label>
+        <select
+          id="perPage"
+          className="input"
+          value={itemsPerPage}
+          onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+        >
+          <option value="10">10</option>
+          <option value="15">15</option>
+          <option value="20">20</option>
+          <option value="30">30</option>
+          <option value="50">50</option>
+        </select>
+      </div>
     </div>
   )
 );
@@ -204,7 +227,6 @@ export default function ProductsClient({
   const [showFilters, setShowFilters] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(totalProducts);
-  const itemsPerPage = 12;
 
   // Flag para prevenir actualización de URL en primera carga
   const [isInitialized, setIsInitialized] = useState(false);
@@ -234,6 +256,9 @@ export default function ProductsClient({
   const [currentPage, setCurrentPage] = useState(
     () => Number(searchParams.get("page")) || 1
   );
+  const [itemsPerPage, setItemsPerPage] = useState(
+    () => Number(searchParams.get("perPage")) || 15
+  );
 
   // Marcar como inicializado después del primer render
   useEffect(() => {
@@ -244,7 +269,7 @@ export default function ProductsClient({
   useEffect(() => {
     // Crear una clave única para este estado de filtros
     const scrollKey = `products-scroll-${currentPage}-${categoryFilter}-${debouncedSearchTerm}`;
-    
+
     // Restaurar posición de scroll guardada
     const savedScroll = sessionStorage.getItem(scrollKey);
     if (savedScroll) {
@@ -256,8 +281,8 @@ export default function ProductsClient({
       sessionStorage.setItem(scrollKey, window.scrollY.toString());
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [currentPage, categoryFilter, debouncedSearchTerm, products]);
 
   // Actualizar URL cuando cambian los filtros (solo después de inicialización)
@@ -273,6 +298,7 @@ export default function ProductsClient({
     if (maxPrice) params.set("maxPrice", maxPrice);
     if (inStock) params.set("inStock", "true");
     if (sortBy !== "newest") params.set("sortBy", sortBy);
+    if (itemsPerPage !== 15) params.set("perPage", itemsPerPage.toString());
 
     const queryString = params.toString();
     const newUrl = queryString ? `/products?${queryString}` : "/products";
@@ -291,6 +317,7 @@ export default function ProductsClient({
     maxPrice,
     inStock,
     sortBy,
+    itemsPerPage,
     router,
   ]);
 
@@ -342,6 +369,7 @@ export default function ProductsClient({
     maxPrice,
     inStock,
     sortBy,
+    itemsPerPage,
   ]);
 
   // Reset page when filters change
@@ -357,6 +385,7 @@ export default function ProductsClient({
     maxPrice,
     inStock,
     sortBy,
+    itemsPerPage,
   ]);
 
   const clearFilters = () => {
@@ -366,6 +395,7 @@ export default function ProductsClient({
     setMaxPrice("");
     setInStock(false);
     setSortBy("newest");
+    setItemsPerPage(15);
   };
 
   // Contar filtros activos
@@ -437,6 +467,7 @@ export default function ProductsClient({
                 maxPrice={maxPrice}
                 inStock={inStock}
                 sortBy={sortBy}
+                itemsPerPage={itemsPerPage}
                 categories={categories}
                 onSearchChange={setSearchTerm}
                 onCategoryChange={setCategoryFilter}
@@ -444,10 +475,11 @@ export default function ProductsClient({
                 onMaxPriceChange={setMaxPrice}
                 onInStockChange={setInStock}
                 onSortByChange={setSortBy}
+                onItemsPerPageChange={setItemsPerPage}
               />
 
               {/* Resultados */}
-              <div className="mt-6 pt-4 border-t border-white/10">
+              <div className="mt-4 pt-4 border-t border-white/10">
                 <p className="text-sm text-white/60">
                   {total > 0 ? (
                     <>
@@ -521,6 +553,7 @@ export default function ProductsClient({
                       maxPrice={maxPrice}
                       inStock={inStock}
                       sortBy={sortBy}
+                      itemsPerPage={itemsPerPage}
                       categories={categories}
                       onSearchChange={setSearchTerm}
                       onCategoryChange={setCategoryFilter}
@@ -528,6 +561,7 @@ export default function ProductsClient({
                       onMaxPriceChange={setMaxPrice}
                       onInStockChange={setInStock}
                       onSortByChange={setSortBy}
+                      onItemsPerPageChange={setItemsPerPage}
                     />
 
                     {

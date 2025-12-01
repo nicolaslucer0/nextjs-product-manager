@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import ProductsClient from "./ProductsClient";
+import { Suspense } from "react";
 
 export default async function ProductsPage() {
   await connectDB();
@@ -10,6 +11,8 @@ export default async function ProductsPage() {
   const totalProducts = await Product.countDocuments();
 
   return (
-    <ProductsClient categories={categories} totalProducts={totalProducts} />
+    <Suspense fallback={<div>Cargando...</div>}>
+      <ProductsClient categories={categories} totalProducts={totalProducts} />
+    </Suspense>
   );
 }

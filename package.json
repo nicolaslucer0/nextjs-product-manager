@@ -20,7 +20,7 @@
     "dotenv": "^17.2.3",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.6.0",
-    "next": "16.0.0",
+    "next": "16.0.10",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "sharp": "^0.34.5",

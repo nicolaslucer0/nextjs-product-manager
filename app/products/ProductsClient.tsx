@@ -209,7 +209,7 @@ const FilterContent = memo(
         </select>
       </div>
     </div>
-  )
+  ),
 );
 
 FilterContent.displayName = "FilterContent";
@@ -233,31 +233,31 @@ export default function ProductsClient({
 
   // Estados de filtros - inicializados con valores de URL
   const [searchTerm, setSearchTerm] = useState(
-    () => searchParams.get("search") || ""
+    () => searchParams.get("search") || "",
   );
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(
-    () => searchParams.get("search") || ""
+    () => searchParams.get("search") || "",
   );
   const [sortBy, setSortBy] = useState(
-    () => searchParams.get("sortBy") || "newest"
+    () => searchParams.get("sortBy") || "newest",
   );
   const [minPrice, setMinPrice] = useState(
-    () => searchParams.get("minPrice") || ""
+    () => searchParams.get("minPrice") || "",
   );
   const [maxPrice, setMaxPrice] = useState(
-    () => searchParams.get("maxPrice") || ""
+    () => searchParams.get("maxPrice") || "",
   );
   const [inStock, setInStock] = useState(
-    () => searchParams.get("inStock") === "true"
+    () => searchParams.get("inStock") === "true",
   );
   const [categoryFilter, setCategoryFilter] = useState<string>(
-    () => searchParams.get("category") || "all"
+    () => searchParams.get("category") || "all",
   );
   const [currentPage, setCurrentPage] = useState(
-    () => Number(searchParams.get("page")) || 1
+    () => Number(searchParams.get("page")) || 1,
   );
   const [itemsPerPage, setItemsPerPage] = useState(
-    () => Number(searchParams.get("perPage")) || 15
+    () => Number(searchParams.get("perPage")) || 15,
   );
 
   // Marcar como inicializado después del primer render
@@ -348,13 +348,28 @@ export default function ProductsClient({
         if (inStock) params.append("inStock", "true");
 
         const response = await fetch(`/api/products?${params.toString()}`);
-        const data = await response.json();
+        const data = await response.json().catch(() => null);
 
-        setProducts(data.products);
-        setTotalPages(data.pagination.totalPages);
-        setTotal(data.pagination.total);
+        if (!response.ok) {
+          console.error("Error response fetching products:", data);
+          setProducts([]);
+          setTotalPages(1);
+          setTotal(0);
+          return;
+        }
+
+        const products = Array.isArray(data?.products) ? data.products : [];
+        const totalPages = Number(data?.pagination?.totalPages) || 1;
+        const total = Number(data?.pagination?.total) || products.length;
+
+        setProducts(products);
+        setTotalPages(totalPages);
+        setTotal(total);
       } catch (error) {
         console.error("Error fetching products:", error);
+        setProducts([]);
+        setTotalPages(1);
+        setTotal(0);
       } finally {
         setLoading(false);
       }

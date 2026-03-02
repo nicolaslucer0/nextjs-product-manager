@@ -8,23 +8,29 @@ export const maxDuration = 30;
 export async function POST(request: NextRequest) {
   // Rate limiting
   if (uploadLimiter) {
-    const ip = getIP(request);
-    const { success, limit, remaining, reset } = await uploadLimiter.limit(ip);
+    try {
+      const ip = getIP(request);
+      const { success, limit, remaining, reset } =
+        await uploadLimiter.limit(ip);
 
-    if (!success) {
-      return NextResponse.json(
-        {
-          error: "Demasiadas subidas de imágenes. Intenta de nuevo más tarde.",
-        },
-        {
-          status: 429,
-          headers: {
-            "X-RateLimit-Limit": limit.toString(),
-            "X-RateLimit-Remaining": remaining.toString(),
-            "X-RateLimit-Reset": new Date(reset).toISOString(),
+      if (!success) {
+        return NextResponse.json(
+          {
+            error:
+              "Demasiadas subidas de imágenes. Intenta de nuevo más tarde.",
           },
-        }
-      );
+          {
+            status: 429,
+            headers: {
+              "X-RateLimit-Limit": limit.toString(),
+              "X-RateLimit-Remaining": remaining.toString(),
+              "X-RateLimit-Reset": new Date(reset).toISOString(),
+            },
+          },
+        );
+      }
+    } catch (error) {
+      console.error("Rate limiter unavailable in /api/upload:", error);
     }
   }
 
@@ -35,7 +41,7 @@ export async function POST(request: NextRequest) {
     if (!file) {
       return NextResponse.json(
         { error: "No se proporcionó ningún archivo" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -53,7 +59,7 @@ export async function POST(request: NextRequest) {
           error:
             "Tipo de archivo no válido. Solo se permiten imágenes (JPEG, PNG, WebP, GIF)",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -62,7 +68,7 @@ export async function POST(request: NextRequest) {
     if (file.size > maxSize) {
       return NextResponse.json(
         { error: "El archivo es demasiado grande. Máximo 5MB" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -81,16 +87,16 @@ export async function POST(request: NextRequest) {
 
     console.log(
       `Imagen comprimida: ${Math.round(buffer.length / 1024)}KB → ${Math.round(
-        compressedBuffer.length / 1024
+        compressedBuffer.length / 1024,
       )}KB (${Math.round(
-        (1 - compressedBuffer.length / buffer.length) * 100
-      )}% reducción)`
+        (1 - compressedBuffer.length / buffer.length) * 100,
+      )}% reducción)`,
     );
 
     // Subir a Cloudinary
     const { url, publicId } = await uploadToCloudinary(
       compressedBuffer,
-      "product-manager/products"
+      "product-manager/products",
     );
 
     return NextResponse.json({
@@ -103,7 +109,7 @@ export async function POST(request: NextRequest) {
     console.error("Error al subir archivo:", error);
     return NextResponse.json(
       { error: "Error al procesar la imagen" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

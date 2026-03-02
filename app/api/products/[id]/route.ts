@@ -6,16 +6,23 @@ import { apiLimiter, writeLimiter, getIP } from "@/lib/ratelimit";
 
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   // Rate limiting para lectura
   if (apiLimiter) {
-    const ip = getIP(req);
-    const { success } = await apiLimiter.limit(ip);
-    if (!success) {
-      return NextResponse.json(
-        { error: "Demasiadas peticiones. Intenta de nuevo más tarde." },
-        { status: 429 }
+    try {
+      const ip = getIP(req);
+      const { success } = await apiLimiter.limit(ip);
+      if (!success) {
+        return NextResponse.json(
+          { error: "Demasiadas peticiones. Intenta de nuevo más tarde." },
+          { status: 429 },
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Rate limiter unavailable in /api/products/[id] GET:",
+        error,
       );
     }
   }
@@ -29,19 +36,26 @@ export async function GET(
 
 export async function PUT(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   // Rate limiting para escritura
   if (writeLimiter) {
-    const ip = getIP(req);
-    const { success } = await writeLimiter.limit(ip);
-    if (!success) {
-      return NextResponse.json(
-        {
-          error:
-            "Demasiadas peticiones de escritura. Intenta de nuevo más tarde.",
-        },
-        { status: 429 }
+    try {
+      const ip = getIP(req);
+      const { success } = await writeLimiter.limit(ip);
+      if (!success) {
+        return NextResponse.json(
+          {
+            error:
+              "Demasiadas peticiones de escritura. Intenta de nuevo más tarde.",
+          },
+          { status: 429 },
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Rate limiter unavailable in /api/products/[id] PUT:",
+        error,
       );
     }
   }
@@ -52,7 +66,7 @@ export async function PUT(
     if (!authHeader) {
       return NextResponse.json(
         { error: "No autorizado. Token requerido." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -62,7 +76,7 @@ export async function PUT(
     if (!payload) {
       return NextResponse.json(
         { error: "Token inválido o expirado." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -78,19 +92,26 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   // Rate limiting para escritura
   if (writeLimiter) {
-    const ip = getIP(req);
-    const { success } = await writeLimiter.limit(ip);
-    if (!success) {
-      return NextResponse.json(
-        {
-          error:
-            "Demasiadas peticiones de escritura. Intenta de nuevo más tarde.",
-        },
-        { status: 429 }
+    try {
+      const ip = getIP(req);
+      const { success } = await writeLimiter.limit(ip);
+      if (!success) {
+        return NextResponse.json(
+          {
+            error:
+              "Demasiadas peticiones de escritura. Intenta de nuevo más tarde.",
+          },
+          { status: 429 },
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Rate limiter unavailable in /api/products/[id] DELETE:",
+        error,
       );
     }
   }
@@ -101,7 +122,7 @@ export async function DELETE(
     if (!authHeader) {
       return NextResponse.json(
         { error: "No autorizado. Token requerido." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -111,7 +132,7 @@ export async function DELETE(
     if (!payload) {
       return NextResponse.json(
         { error: "Token inválido o expirado." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 

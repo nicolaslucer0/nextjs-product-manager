@@ -2,23 +2,32 @@ import mongoose from "mongoose";
 
 declare global {
   // eslint-disable-next-line no-var
-  var _mongoose: { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null } | undefined;
+  var _mongoose:
+    | { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null }
+    | undefined;
 }
 
-const MONGODB_URI = process.env.MONGODB_URI as string;
-if (!MONGODB_URI) throw new Error("Missing MONGODB_URI");
+function getMongoUri(): string {
+  const mongoUri = process.env.MONGODB_URI;
+  if (!mongoUri) throw new Error("Missing MONGODB_URI");
+  return mongoUri;
+}
 
 export async function connectDB() {
-  if (!global._mongoose) {
-    global._mongoose = { conn: null, promise: null };
-  }
-  if (global._mongoose.conn) return global._mongoose.conn;
+  globalThis._mongoose ??= { conn: null, promise: null };
 
-  if (!global._mongoose.promise) {
-    global._mongoose.promise = mongoose.connect(MONGODB_URI, {
-      bufferCommands: false
+  if (globalThis._mongoose.conn) return globalThis._mongoose.conn;
+
+  globalThis._mongoose.promise ??= mongoose
+    .connect(getMongoUri(), {
+      bufferCommands: false,
+      serverSelectionTimeoutMS: 10000,
+    })
+    .catch((error) => {
+      globalThis._mongoose!.promise = null;
+      throw error;
     });
-  }
-  global._mongoose.conn = await global._mongoose.promise;
-  return global._mongoose.conn;
+
+  globalThis._mongoose.conn = await globalThis._mongoose.promise;
+  return globalThis._mongoose.conn;
 }

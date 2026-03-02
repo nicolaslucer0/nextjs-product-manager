@@ -37,6 +37,7 @@ type Product = {
   images: string[];
   variants?: Variant[];
   featured?: boolean;
+  planCanje?: boolean;
 };
 
 type User = {
@@ -529,6 +530,9 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                           </th>
                           <th className="text-left py-3 px-2 text-sm font-semibold hidden sm:table-cell">
                             Stock
+                          </th>
+                          <th className="text-left py-3 px-2 text-sm font-semibold hidden md:table-cell">
+                            Plan canje
                           </th>
                           <th className="text-right py-3 px-2 text-sm font-semibold">
                             Acciones

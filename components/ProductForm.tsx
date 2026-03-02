@@ -22,6 +22,7 @@ type Product = {
   stock: number;
   images: string[];
   variants?: Variant[];
+  planCanje?: boolean;
 };
 
 type Props = {
@@ -42,6 +43,7 @@ export default function ProductForm({
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState<number>(0);
   const [stock, setStock] = useState<number>(0);
+  const [planCanje, setPlanCanje] = useState(false);
   const [images, setImages] = useState<string[]>([]);
   const [variants, setVariants] = useState<Variant[]>([]);
   const [showVariantForm, setShowVariantForm] = useState(false);
@@ -62,6 +64,7 @@ export default function ProductForm({
       setCategory(product.category || "");
       setPrice(product.price);
       setStock(product.stock);
+      setPlanCanje(Boolean(product.planCanje));
       setImages(product.images || []);
       if (product.variants) {
         setVariants(
@@ -72,7 +75,7 @@ export default function ProductForm({
             price: v.price,
             stock: v.stock,
             image: v.image,
-          }))
+          })),
         );
       }
     }
@@ -97,8 +100,8 @@ export default function ProductForm({
                 stock: variantStock,
                 image: variantImage,
               }
-            : v
-        )
+            : v,
+        ),
       );
       showToast("Variante actualizada", "success");
     } else {
@@ -164,6 +167,7 @@ export default function ProductForm({
       category: category || undefined,
       price,
       stock,
+      planCanje,
       images,
       variants: variants.map((v) => ({
         name: v.name,
@@ -195,6 +199,7 @@ export default function ProductForm({
           setDescription("");
           setPrice(0);
           setStock(0);
+          setPlanCanje(false);
           setImages([]);
           setVariants([]);
         }
@@ -202,7 +207,7 @@ export default function ProductForm({
           isEditing
             ? "Producto actualizado exitosamente"
             : "Producto creado exitosamente",
-          "success"
+          "success",
         );
         if (onSuccess) {
           onSuccess();
@@ -301,6 +306,24 @@ export default function ProductForm({
             Stock general (si no usas variantes)
           </p>
         </div>
+      </div>
+
+      <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={planCanje}
+            onChange={(e) => setPlanCanje(e.target.checked)}
+            className="w-4 h-4 text-blue-600 rounded"
+          />
+          <div>
+            <p className="font-medium">Plan canje</p>
+            <p className="text-xs text-white/60">
+              Si está activo, se mostrará un botón en el detalle del producto
+              para ir al cotizador.
+            </p>
+          </div>
+        </label>
       </div>
 
       <div>

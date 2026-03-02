@@ -1,6 +1,7 @@
 "use client";
 
 import { formatPrice } from "@/lib/utils";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 type UsedPhonePrice = {
@@ -12,9 +13,22 @@ type UsedPhonePrice = {
   active: boolean;
 };
 
+type CanjeProduct = {
+  _id: string;
+  title: string;
+  description?: string;
+  images: string[];
+  planCanje?: boolean;
+};
+
 export default function CotizaTuTelefonoPage() {
   const [rows, setRows] = useState<UsedPhonePrice[]>([]);
+  const [canjeProducts, setCanjeProducts] = useState<CanjeProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const searchParams = useSearchParams();
+
+  const [productSearch, setProductSearch] = useState("");
+  const [selectedCanjeProductId, setSelectedCanjeProductId] = useState("");
 
   const [selectedModel, setSelectedModel] = useState("");
   const [selectedStorage, setSelectedStorage] = useState("");
@@ -26,16 +40,32 @@ export default function CotizaTuTelefonoPage() {
   const [hasChangedParts, setHasChangedParts] = useState<boolean | null>(null);
   const [worksPerfectly, setWorksPerfectly] = useState<boolean | null>(null);
 
+  const selectedTargetProductId = (searchParams.get("productoId") || "").trim();
+  const selectedTargetProduct = (searchParams.get("producto") || "").trim();
+  const initialModelHint = (searchParams.get("modelo") || "").trim();
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
-        const response = await fetch("/api/used-phone-prices");
-        const data = await response.json().catch(() => []);
-        setRows(Array.isArray(data) ? data : []);
+        const [pricesResponse, productsResponse] = await Promise.all([
+          fetch("/api/used-phone-prices"),
+          fetch("/api/products?planCanje=true&limit=200&sortBy=name-asc"),
+        ]);
+
+        const pricesData = await pricesResponse.json().catch(() => []);
+        const productsData = await productsResponse
+          .json()
+          .catch(() => ({ products: [] }));
+
+        setRows(Array.isArray(pricesData) ? pricesData : []);
+        setCanjeProducts(
+          Array.isArray(productsData?.products) ? productsData.products : [],
+        );
       } catch (error) {
         console.error("Error loading used phone prices:", error);
         setRows([]);
+        setCanjeProducts([]);
       } finally {
         setLoading(false);
       }
@@ -43,6 +73,57 @@ export default function CotizaTuTelefonoPage() {
 
     loadData();
   }, []);
+
+  const filteredCanjeProducts = useMemo(() => {
+    const term = productSearch.trim().toLowerCase();
+    if (!term) {
+      return canjeProducts;
+    }
+
+    return canjeProducts.filter((product) => {
+      const title = product.title.toLowerCase();
+      const description = (product.description || "").toLowerCase();
+      return title.includes(term) || description.includes(term);
+    });
+  }, [canjeProducts, productSearch]);
+
+  const selectedCanjeProduct = useMemo(
+    () =>
+      canjeProducts.find((product) => product._id === selectedCanjeProductId) ||
+      null,
+    [canjeProducts, selectedCanjeProductId],
+  );
+
+  useEffect(() => {
+    if (selectedCanjeProductId || canjeProducts.length === 0) {
+      return;
+    }
+
+    if (selectedTargetProductId) {
+      const byId = canjeProducts.find(
+        (product) => product._id === selectedTargetProductId,
+      );
+      if (byId) {
+        setSelectedCanjeProductId(byId._id);
+        return;
+      }
+    }
+
+    if (selectedTargetProduct) {
+      const normalizedTarget = selectedTargetProduct.toLowerCase();
+      const byTitle = canjeProducts.find(
+        (product) => product.title.toLowerCase() === normalizedTarget,
+      );
+      if (byTitle) {
+        setSelectedCanjeProductId(byTitle._id);
+      }
+    }
+  }, [
+    selectedCanjeProductId,
+    canjeProducts,
+    selectedTargetProductId,
+    selectedTargetProduct,
+  ]);
 
   const modelOptions = useMemo(
     () =>
@@ -60,6 +141,34 @@ export default function CotizaTuTelefonoPage() {
         .sort((a, b) => a.localeCompare(b)),
     [rows, selectedModel],
   );
+
+  useEffect(() => {
+    if (!initialModelHint || selectedModel || modelOptions.length === 0) {
+      return;
+    }
+
+    const normalizedHint = initialModelHint.toLowerCase();
+    const exactMatch = modelOptions.find(
+      (option) => option.toLowerCase() === normalizedHint,
+    );
+
+    if (exactMatch) {
+      setSelectedModel(exactMatch);
+      return;
+    }
+
+    const fuzzyMatch = modelOptions.find((option) => {
+      const normalizedOption = option.toLowerCase();
+      return (
+        normalizedHint.includes(normalizedOption) ||
+        normalizedOption.includes(normalizedHint)
+      );
+    });
+
+    if (fuzzyMatch) {
+      setSelectedModel(fuzzyMatch);
+    }
+  }, [initialModelHint, modelOptions, selectedModel]);
 
   const selectedRow = useMemo(
     () =>
@@ -96,7 +205,13 @@ export default function CotizaTuTelefonoPage() {
   let pageContent: React.ReactNode = null;
 
   if (loading) {
-    pageContent = <p className="text-white/60">Cargando modelos...</p>;
+    pageContent = <p className="text-white/60">Cargando opciones...</p>;
+  } else if (canjeProducts.length === 0) {
+    pageContent = (
+      <p className="text-white/60">
+        No hay productos con plan canje activo por ahora.
+      </p>
+    );
   } else if (rows.length === 0) {
     pageContent = (
       <p className="text-white/60">
@@ -106,14 +221,87 @@ export default function CotizaTuTelefonoPage() {
   } else {
     pageContent = (
       <>
+        <div className="space-y-3">
+          <label htmlFor="trade-product-search" className="label">
+            1) Seleccioná un producto a canjear
+          </label>
+          <input
+            id="trade-product-search"
+            className="input"
+            value={productSearch}
+            onChange={(e) => setProductSearch(e.target.value)}
+            placeholder="Buscar producto..."
+          />
+
+          {filteredCanjeProducts.length === 0 ? (
+            <p className="text-sm text-white/60">
+              No hay resultados para tu búsqueda.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[28rem] overflow-y-auto pr-1">
+              {filteredCanjeProducts.map((product) => {
+                const isSelected = product._id === selectedCanjeProductId;
+                const image = product.images?.[0] || "";
+
+                return (
+                  <button
+                    key={product._id}
+                    type="button"
+                    onClick={() => setSelectedCanjeProductId(product._id)}
+                    className={`text-left rounded-xl border p-3 transition-all ${
+                      isSelected
+                        ? "border-blue-400 bg-blue-500/10"
+                        : "border-white/10 bg-white/5 hover:border-white/30"
+                    }`}
+                  >
+                    <div className="flex gap-3 items-center">
+                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                        {image ? (
+                          <img
+                            src={image}
+                            alt={product.title}
+                            className="w-full h-full object-contain p-1"
+                          />
+                        ) : (
+                          <span className="text-xs text-white/40">
+                            Sin foto
+                          </span>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-medium truncate">{product.title}</p>
+                        {product.description ? (
+                          <p className="text-xs text-white/60 line-clamp-2">
+                            {product.description}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {selectedCanjeProduct && (
+          <div className="rounded-xl border border-blue-400/30 bg-blue-500/10 p-4">
+            <p className="text-sm text-blue-300">Producto a canjear</p>
+            <p className="font-semibold text-blue-200">
+              {selectedCanjeProduct.title}
+            </p>
+          </div>
+        )}
+
         <div>
           <label htmlFor="quote-model" className="label">
-            1) ¿Qué iPhone tenés?
+            2) ¿Qué iPhone tenés?
           </label>
           <select
             id="quote-model"
             className="input"
             value={selectedModel}
+            disabled={!selectedCanjeProductId}
             onChange={(e) => {
               setSelectedModel(e.target.value);
               setSelectedStorage("");
@@ -135,7 +323,7 @@ export default function CotizaTuTelefonoPage() {
         {selectedModel && (
           <div>
             <label htmlFor="quote-storage" className="label">
-              2) ¿Qué memoria tiene?
+              3) ¿Qué memoria tiene?
             </label>
             <select
               id="quote-storage"
@@ -163,7 +351,7 @@ export default function CotizaTuTelefonoPage() {
           <>
             <div>
               <label htmlFor="quote-battery" className="label">
-                3) Porcentaje de batería
+                4) Porcentaje de batería
               </label>
               <input
                 id="quote-battery"
@@ -178,19 +366,19 @@ export default function CotizaTuTelefonoPage() {
             </div>
 
             <QuestionRow
-              title="4) ¿Tiene detalle estético?"
+              title="5) ¿Tiene detalle estético?"
               value={hasAestheticDetail}
               onChange={setHasAestheticDetail}
             />
 
             <QuestionRow
-              title="5) ¿Tiene piezas cambiadas?"
+              title="6) ¿Tiene piezas cambiadas?"
               value={hasChangedParts}
               onChange={setHasChangedParts}
             />
 
             <QuestionRow
-              title="6) ¿Funciona perfectamente?"
+              title="7) ¿Funciona perfectamente?"
               value={worksPerfectly}
               onChange={setWorksPerfectly}
             />

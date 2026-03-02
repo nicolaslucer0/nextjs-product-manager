@@ -24,6 +24,7 @@ type Product = {
   images: string[];
   variants?: Variant[];
   featured?: boolean;
+  planCanje?: boolean;
 };
 
 type ProductTableRowProps = {
@@ -32,7 +33,7 @@ type ProductTableRowProps = {
   readonly onEdit: (product: Product) => void;
   readonly onFeaturedToggle: (
     productId: string,
-    newFeaturedState: boolean
+    newFeaturedState: boolean,
   ) => void;
   readonly onToast: (message: string, type: "success" | "error") => void;
 };
@@ -147,6 +148,18 @@ export default function ProductTableRow({
           }`}
         >
           {product.stock}
+        </span>
+      </td>
+
+      <td className="py-3 px-2 hidden md:table-cell">
+        <span
+          className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border ${
+            product.planCanje
+              ? "text-blue-300 border-blue-400/30 bg-blue-500/10"
+              : "text-white/50 border-white/20 bg-white/5"
+          }`}
+        >
+          {product.planCanje ? "Sí" : "No"}
         </span>
       </td>
 

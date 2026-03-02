@@ -26,7 +26,7 @@ export default function ProductDetailClient({ product }: Props) {
         if (response.ok) {
           const configs = await response.json();
           const config = configs.find(
-            (c: { category: string }) => c.category === product.category
+            (c: { category: string }) => c.category === product.category,
           );
           if (config && config.warrantyMessage) {
             setWarrantyMessage(config.warrantyMessage);
@@ -60,6 +60,15 @@ export default function ProductDetailClient({ product }: Props) {
     if (variant.image) {
       setSelectedImage(variant.image);
     }
+  };
+
+  const canjeHref = {
+    pathname: "/cotiza-tu-telefono",
+    query: {
+      productoId: product._id,
+      producto: product.title,
+      modelo: product.title,
+    },
   };
 
   return (
@@ -196,6 +205,17 @@ export default function ProductDetailClient({ product }: Props) {
                   </span>
                 )}
               </div>
+
+              {product.planCanje && (
+                <div className="mt-4">
+                  <Link
+                    href={canjeHref}
+                    className="btn btn-primary w-full sm:w-auto"
+                  >
+                    Plan canje
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* Selector de variantes de color */}
@@ -218,8 +238,8 @@ export default function ProductDetailClient({ product }: Props) {
                         selectedVariant?._id === variant._id
                           ? "border-blue-400 bg-blue-500/20 text-blue-400 scale-105"
                           : theme === "light"
-                          ? "border-gray-300 hover:border-gray-400 bg-white text-gray-700"
-                          : "border-white/20 hover:border-white/40 bg-white/5 text-white"
+                            ? "border-gray-300 hover:border-gray-400 bg-white text-gray-700"
+                            : "border-white/20 hover:border-white/40 bg-white/5 text-white"
                       }`}
                     >
                       <span>🎨 {variant.name}</span>
@@ -261,8 +281,8 @@ export default function ProductDetailClient({ product }: Props) {
                         selectedVariant?._id === variant._id
                           ? "border-blue-400 bg-blue-500/20 text-blue-400 scale-105"
                           : theme === "light"
-                          ? "border-gray-300 hover:border-gray-400 bg-white text-gray-700"
-                          : "border-white/20 hover:border-white/40 bg-white/5 text-white"
+                            ? "border-gray-300 hover:border-gray-400 bg-white text-gray-700"
+                            : "border-white/20 hover:border-white/40 bg-white/5 text-white"
                       }`}
                     >
                       <span>💾 {variant.name}</span>

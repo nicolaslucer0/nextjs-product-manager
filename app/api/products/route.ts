@@ -33,6 +33,7 @@ export async function GET(req: Request) {
     const minPrice = searchParams.get("minPrice");
     const maxPrice = searchParams.get("maxPrice");
     const inStock = searchParams.get("inStock") === "true";
+    const planCanjeParam = searchParams.get("planCanje");
     const sortBy = searchParams.get("sortBy") || "newest";
 
     // Construir query de filtros
@@ -61,6 +62,12 @@ export async function GET(req: Request) {
       query.stock = { $gt: 0 };
     }
 
+    if (planCanjeParam === "true") {
+      query.planCanje = true;
+    } else if (planCanjeParam === "false") {
+      query.planCanje = false;
+    }
+
     // Definir ordenamiento
     let sort: any = { createdAt: -1 };
     switch (sortBy) {
@@ -82,14 +89,16 @@ export async function GET(req: Request) {
     const skip = (page - 1) * limit;
 
     const projection =
-      "title description category price stock images variants featured createdAt updatedAt";
+      "title description category price stock images variants featured planCanje createdAt updatedAt";
 
     const hasFilters =
       Boolean(search) ||
       (category && category !== "all") ||
       Boolean(minPrice) ||
       Boolean(maxPrice) ||
-      inStock;
+      inStock ||
+      planCanjeParam === "true" ||
+      planCanjeParam === "false";
 
     // Ejecutar query con paginación
     const [products, total] = await Promise.all([

@@ -21,6 +21,7 @@ const ProductSchema = new Schema({
   images: { type: [String], default: [] }, // Imágenes generales
   variants: { type: [VariantSchema], default: [] }, // Variantes del producto
   featured: { type: Boolean, default: false }, // Producto destacado
+  planCanje: { type: Boolean, default: false }, // Habilita botón de plan canje
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -56,6 +57,7 @@ export type ProductType = {
   images: string[];
   variants: Variant[];
   featured?: boolean;
+  planCanje?: boolean;
   createdAt: string;
   updatedAt: string;
 };

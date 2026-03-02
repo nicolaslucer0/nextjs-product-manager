@@ -1,0 +1,46 @@
+name: Cleanup Vercel Legacy Alias
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  cleanup-alias:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      VERCEL_SCOPE: nicolaslucer0s-projects
+      LEGACY_ALIAS: nextjs-product-manager.vercel.app
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+    steps:
+      - name: Validate Vercel token
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "Missing VERCEL_TOKEN secret"
+            echo "Create it in GitHub: Settings > Secrets and variables > Actions > New repository secret"
+            exit 1
+          fi
+
+      - name: Wait for Vercel deployment window
+        run: sleep 180
+
+      - name: Remove legacy alias repeatedly
+        run: |
+          for i in 1 2 3 4 5; do
+            echo "Attempt $i: removing $LEGACY_ALIAS"
+            npx -y vercel alias remove "$LEGACY_ALIAS" \
+              --yes \
+              --scope "$VERCEL_SCOPE" \
+              --token "$VERCEL_TOKEN" || true
+            sleep 30
+          done
+
+      - name: Show aliases
+        run: |
+          npx -y vercel alias ls \
+            --scope "$VERCEL_SCOPE" \
+            --token "$VERCEL_TOKEN"

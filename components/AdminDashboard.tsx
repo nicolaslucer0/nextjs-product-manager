@@ -125,6 +125,17 @@ export default function AdminDashboard({ products, users, stats }: Props) {
     );
   };
 
+  const handlePlanCanjeToggle = (
+    productId: string,
+    newPlanCanjeState: boolean,
+  ) => {
+    setLocalProducts((prevProducts) =>
+      prevProducts.map((p) =>
+        p._id === productId ? { ...p, planCanje: newPlanCanjeState } : p,
+      ),
+    );
+  };
+
   // Handler para editar un producto
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
@@ -547,6 +558,7 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                             theme={theme}
                             onEdit={handleEditProduct}
                             onFeaturedToggle={handleFeaturedToggle}
+                            onPlanCanjeToggle={handlePlanCanjeToggle}
                             onToast={showToast}
                           />
                         ))}

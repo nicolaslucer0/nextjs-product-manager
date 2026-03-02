@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
-import { toggleFeatured } from "@/app/admin/featuredActions";
+import { toggleFeatured, togglePlanCanje } from "@/app/admin/featuredActions";
 import { deleteProduct } from "@/app/admin/actions";
 
 type Variant = {
@@ -35,6 +35,10 @@ type ProductTableRowProps = {
     productId: string,
     newFeaturedState: boolean,
   ) => void;
+  readonly onPlanCanjeToggle: (
+    productId: string,
+    newPlanCanjeState: boolean,
+  ) => void;
   readonly onToast: (message: string, type: "success" | "error") => void;
 };
 
@@ -43,6 +47,7 @@ export default function ProductTableRow({
   theme,
   onEdit,
   onFeaturedToggle,
+  onPlanCanjeToggle,
   onToast,
 }: ProductTableRowProps) {
   const handleToggleFeatured = async (e: React.MouseEvent) => {
@@ -65,6 +70,22 @@ export default function ProductTableRow({
     e.stopPropagation();
     onEdit(product);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleTogglePlanCanje = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const result = await togglePlanCanje(product._id);
+      if (result.success) {
+        onPlanCanjeToggle(product._id, Boolean(result.planCanje));
+        onToast("Plan canje actualizado", "success");
+      } else {
+        onToast(result.error || "Error al actualizar", "error");
+      }
+    } catch (error) {
+      console.error("Error toggling plan canje:", error);
+      onToast("Error al actualizar plan canje", "error");
+    }
   };
 
   const rowClasses = `border-b transition-colors ${
@@ -152,15 +173,20 @@ export default function ProductTableRow({
       </td>
 
       <td className="py-3 px-2 hidden md:table-cell">
-        <span
-          className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border ${
+        <button
+          type="button"
+          onClick={handleTogglePlanCanje}
+          className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border transition-colors ${
             product.planCanje
               ? "text-blue-300 border-blue-400/30 bg-blue-500/10"
-              : "text-white/50 border-white/20 bg-white/5"
+              : "text-white/50 border-white/20 bg-white/5 hover:bg-white/10"
           }`}
+          title={
+            product.planCanje ? "Desactivar plan canje" : "Activar plan canje"
+          }
         >
-          {product.planCanje ? "Sí" : "No"}
-        </span>
+          {product.planCanje ? "Activo" : "Inactivo"}
+        </button>
       </td>
 
       {/* Acciones */}

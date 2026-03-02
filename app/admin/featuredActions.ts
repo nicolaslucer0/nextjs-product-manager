@@ -55,12 +55,35 @@ export async function getFeaturedProducts() {
     console.log("Featured products found:", products.length);
     console.log(
       "Products:",
-      products.map((p) => ({ id: p._id, title: p.title, featured: p.featured }))
+      products.map((p) => ({
+        id: p._id,
+        title: p.title,
+        featured: p.featured,
+      })),
     );
 
     return JSON.parse(JSON.stringify(products));
   } catch (error) {
     console.error("Error getting featured products:", error);
     return [];
+  }
+}
+
+export async function togglePlanCanje(productId: string) {
+  try {
+    await connectDB();
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return { success: false, error: "Producto no encontrado" };
+    }
+
+    product.planCanje = !product.planCanje;
+    await product.save();
+
+    return { success: true, planCanje: product.planCanje };
+  } catch (error) {
+    console.error("Error toggling plan canje:", error);
+    return { success: false, error: "Error al actualizar plan canje" };
   }
 }

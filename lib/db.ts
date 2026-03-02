@@ -22,6 +22,8 @@ export async function connectDB() {
     .connect(getMongoUri(), {
       bufferCommands: false,
       serverSelectionTimeoutMS: 10000,
+      maxPoolSize: 10,
+      minPoolSize: 1,
     })
     .catch((error) => {
       globalThis._mongoose!.promise = null;

@@ -25,6 +25,12 @@ const ProductSchema = new Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
+ProductSchema.index({ createdAt: -1 });
+ProductSchema.index({ category: 1, createdAt: -1 });
+ProductSchema.index({ price: 1 });
+ProductSchema.index({ stock: 1 });
+ProductSchema.index({ featured: 1, updatedAt: -1 });
+
 ProductSchema.pre("save", function (next) {
   this.updatedAt = new Date();
   next();
@@ -54,9 +60,4 @@ export type ProductType = {
   updatedAt: string;
 };
 
-// Eliminar el modelo cacheado si existe para asegurar que use el schema actualizado
-if (models.Product) {
-  delete models.Product;
-}
-
-export default model("Product", ProductSchema);
+export default models.Product || model("Product", ProductSchema);

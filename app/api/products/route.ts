@@ -81,10 +81,25 @@ export async function GET(req: Request) {
     // Calcular skip para paginación
     const skip = (page - 1) * limit;
 
+    const projection =
+      "title description category price stock images variants featured createdAt updatedAt";
+
+    const hasFilters =
+      Boolean(search) ||
+      (category && category !== "all") ||
+      Boolean(minPrice) ||
+      Boolean(maxPrice) ||
+      inStock;
+
     // Ejecutar query con paginación
     const [products, total] = await Promise.all([
-      Product.find(query).sort(sort).skip(skip).limit(limit).lean(),
-      Product.countDocuments(query),
+      Product.find(query)
+        .select(projection)
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      hasFilters ? Product.countDocuments(query) : Product.estimatedDocumentCount(),
     ]);
 
     return NextResponse.json({

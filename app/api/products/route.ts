@@ -99,7 +99,9 @@ export async function GET(req: Request) {
         .skip(skip)
         .limit(limit)
         .lean(),
-      hasFilters ? Product.countDocuments(query) : Product.estimatedDocumentCount(),
+      hasFilters
+        ? Product.countDocuments(query)
+        : Product.estimatedDocumentCount(),
     ]);
 
     return NextResponse.json({

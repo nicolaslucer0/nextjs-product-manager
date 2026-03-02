@@ -9,6 +9,7 @@ import Pagination from "./Pagination";
 import ProductForm from "./ProductForm";
 import ProductImporter from "./ProductImporter";
 import SocialLinksManager from "./SocialLinksManager";
+import UsedPhonePricingManager from "./UsedPhonePricingManager";
 import UserManagement from "./UserManagement";
 import StatsCard from "./admin/StatsCard";
 import TabNavigation from "./admin/TabNavigation";
@@ -65,7 +66,7 @@ export default function AdminDashboard({ products, users, stats }: Props) {
   const { theme } = useTheme();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<
-    "overview" | "products" | "users" | "social" | "import" | "config"
+    "overview" | "products" | "users" | "social" | "import" | "config" | "used"
   >("products");
   const [showCreateProduct, setShowCreateProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -88,7 +89,7 @@ export default function AdminDashboard({ products, users, stats }: Props) {
 
   // Obtener categorías únicas
   const categories = Array.from(
-    new Set(localProducts.map((p) => p.category).filter(Boolean))
+    new Set(localProducts.map((p) => p.category).filter(Boolean)),
   ).sort((a, b) => (a || "").localeCompare(b || ""));
 
   // Filtrar productos según búsqueda y categoría
@@ -114,12 +115,12 @@ export default function AdminDashboard({ products, users, stats }: Props) {
   // Handler para actualizar el estado featured de un producto
   const handleFeaturedToggle = (
     productId: string,
-    newFeaturedState: boolean
+    newFeaturedState: boolean,
   ) => {
     setLocalProducts((prevProducts) =>
       prevProducts.map((p) =>
-        p._id === productId ? { ...p, featured: newFeaturedState } : p
-      )
+        p._id === productId ? { ...p, featured: newFeaturedState } : p,
+      ),
     );
   };
 
@@ -319,7 +320,7 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                   onClick={async () => {
                     if (
                       !confirm(
-                        "⚠️ ¿Estás seguro de que quieres eliminar TODOS los productos? Esta acción no se puede deshacer."
+                        "⚠️ ¿Estás seguro de que quieres eliminar TODOS los productos? Esta acción no se puede deshacer.",
                       )
                     ) {
                       return;
@@ -329,7 +330,7 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                       !confirm(
                         "⚠️ ÚLTIMA CONFIRMACIÓN: Se eliminarán " +
                           localProducts.length +
-                          " productos. ¿Continuar?"
+                          " productos. ¿Continuar?",
                       )
                     ) {
                       return;
@@ -345,7 +346,7 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                       } else {
                         showToast(
                           result.error || "Error al eliminar productos",
-                          "error"
+                          "error",
                         );
                       }
                     } catch (error) {
@@ -593,6 +594,13 @@ export default function AdminDashboard({ products, users, stats }: Props) {
         {activeTab === "config" && (
           <div className="space-y-6">
             <CategoryConfigManager categories={categories as string[]} />
+          </div>
+        )}
+
+        {/* Used Phone Pricing Tab */}
+        {activeTab === "used" && (
+          <div className="space-y-6">
+            <UsedPhonePricingManager />
           </div>
         )}
       </div>

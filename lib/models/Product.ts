@@ -8,7 +8,7 @@ const VariantSchema = new Schema(
     stock: { type: Number, default: 0 },
     image: { type: String, default: "" }, // Imagen específica de la variante
   },
-  { _id: true }
+  { _id: true },
 );
 
 const ProductSchema = new Schema({

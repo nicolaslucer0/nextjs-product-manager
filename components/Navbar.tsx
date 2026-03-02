@@ -35,8 +35,8 @@ export default function Navbar() {
         ? "bg-white/90 backdrop-blur-2xl border-b border-gray-200 shadow-xl"
         : "bg-white/70 backdrop-blur-xl border-b border-gray-100"
       : scrolled
-      ? "bg-black/80 backdrop-blur-2xl border-b border-white/10 shadow-2xl"
-      : "bg-black/40 backdrop-blur-xl border-b border-white/5";
+        ? "bg-black/80 backdrop-blur-2xl border-b border-white/10 shadow-2xl"
+        : "bg-black/40 backdrop-blur-xl border-b border-white/5";
 
   const textClass =
     theme === "light"
@@ -76,6 +76,12 @@ export default function Navbar() {
             className={`font-medium transition-colors text-sm ${textClass}`}
           >
             Catálogo
+          </Link>
+          <Link
+            href="/cotiza-tu-telefono"
+            className={`font-medium transition-colors text-sm ${textClass}`}
+          >
+            Cotizá tu teléfono
           </Link>
           {logged && (
             <Link
@@ -237,6 +243,17 @@ export default function Navbar() {
                 onClick={() => setMenuOpen(false)}
               >
                 📦 Catálogo
+              </Link>
+              <Link
+                href="/cotiza-tu-telefono"
+                className={`font-medium transition-colors text-base py-3 px-4 rounded-lg ${
+                  theme === "light"
+                    ? "text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    : "text-white/80 hover:text-white hover:bg-white/10"
+                }`}
+                onClick={() => setMenuOpen(false)}
+              >
+                📱 Cotizá tu teléfono
               </Link>
               {logged && (
                 <Link

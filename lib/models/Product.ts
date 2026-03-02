@@ -31,6 +31,7 @@ ProductSchema.index({ category: 1, createdAt: -1 });
 ProductSchema.index({ price: 1 });
 ProductSchema.index({ stock: 1 });
 ProductSchema.index({ featured: 1, updatedAt: -1 });
+ProductSchema.index({ title: "text", description: "text" });
 
 ProductSchema.pre("save", function (next) {
   this.updatedAt = new Date();

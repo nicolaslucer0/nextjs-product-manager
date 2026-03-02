@@ -40,10 +40,7 @@ export async function GET(req: Request) {
     const query: any = {};
 
     if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-      ];
+      query.$text = { $search: search };
     }
 
     if (category && category !== "all") {
@@ -86,40 +83,37 @@ export async function GET(req: Request) {
     }
 
     // Calcular skip para paginación
-    const skip = (page - 1) * limit;
+    const safeLimit = Number.isFinite(limit)
+      ? Math.max(1, Math.min(limit, 100))
+      : 12;
+    const skip = (page - 1) * safeLimit;
 
     const projection =
       "title description category price stock images variants featured planCanje createdAt updatedAt";
 
-    const hasFilters =
-      Boolean(search) ||
-      (category && category !== "all") ||
-      Boolean(minPrice) ||
-      Boolean(maxPrice) ||
-      inStock ||
-      planCanjeParam === "true" ||
-      planCanjeParam === "false";
+    // Ejecutar query con paginación sin countDocuments (más performante)
+    const pageResults = await Product.find(query)
+      .select(projection)
+      .sort(sort)
+      .skip(skip)
+      .limit(safeLimit + 1)
+      .lean();
 
-    // Ejecutar query con paginación
-    const [products, total] = await Promise.all([
-      Product.find(query)
-        .select(projection)
-        .sort(sort)
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      hasFilters
-        ? Product.countDocuments(query)
-        : Product.estimatedDocumentCount(),
-    ]);
+    const hasNextPage = pageResults.length > safeLimit;
+    const products = hasNextPage
+      ? pageResults.slice(0, safeLimit)
+      : pageResults;
+    const total = skip + products.length + (hasNextPage ? 1 : 0);
+    const totalPages = hasNextPage ? page + 1 : page;
 
     return NextResponse.json({
       products,
       pagination: {
         page,
-        limit,
+        limit: safeLimit,
         total,
-        totalPages: Math.ceil(total / limit),
+        totalPages,
+        hasNextPage,
       },
     });
   } catch (e: any) {

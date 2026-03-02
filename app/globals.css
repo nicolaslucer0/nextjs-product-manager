@@ -170,3 +170,24 @@ html.light select.input option {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* CTA sutil en loop para acciones principales */
+@keyframes cta-float-pulse {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-1px) scale(1.015);
+  }
+}
+
+.cta-loop {
+  animation: cta-float-pulse 2.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta-loop {
+    animation: none;
+  }
+}

@@ -4,27 +4,27 @@ const socialLinksSchema = new mongoose.Schema(
   {
     instagram: {
       type: String,
-      default: "https://instagram.com",
+      default: "",
     },
     whatsapp: {
       type: String,
-      default: "+1234567890",
+      default: "",
     },
     tiktok: {
       type: String,
-      default: "https://tiktok.com",
+      default: "",
     },
     locationAddress: {
       type: String,
-      default: "Av. Principal 123",
+      default: "",
     },
     locationCity: {
       type: String,
-      default: "Ciudad, País",
+      default: "",
     },
     locationSchedule: {
       type: String,
-      default: "Lun - Sáb: 9AM - 8PM",
+      default: "",
     },
     locationMap: {
       type: String,

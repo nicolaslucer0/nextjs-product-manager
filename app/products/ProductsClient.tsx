@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useMemo, memo } from "react";
+import { useState, useEffect, useMemo, memo, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -260,6 +260,29 @@ export default function ProductsClient({
     () => Number(searchParams.get("perPage")) || 15,
   );
 
+  const filterSignature = useMemo(
+    () =>
+      JSON.stringify({
+        debouncedSearchTerm,
+        categoryFilter,
+        minPrice,
+        maxPrice,
+        inStock,
+        sortBy,
+        itemsPerPage,
+      }),
+    [
+      debouncedSearchTerm,
+      categoryFilter,
+      minPrice,
+      maxPrice,
+      inStock,
+      sortBy,
+      itemsPerPage,
+    ],
+  );
+  const previousFilterSignatureRef = useRef(filterSignature);
+
   // Marcar como inicializado después del primer render
   useEffect(() => {
     setIsInitialized(true);
@@ -332,6 +355,17 @@ export default function ProductsClient({
 
   // Fetch products from API
   useEffect(() => {
+    if (
+      currentPage !== 1 &&
+      previousFilterSignatureRef.current !== filterSignature
+    ) {
+      previousFilterSignatureRef.current = filterSignature;
+      setCurrentPage(1);
+      return;
+    }
+
+    previousFilterSignatureRef.current = filterSignature;
+
     const fetchProducts = async () => {
       setLoading(true);
       try {
@@ -378,29 +412,14 @@ export default function ProductsClient({
     fetchProducts();
   }, [
     currentPage,
+    filterSignature,
+    itemsPerPage,
+    sortBy,
     debouncedSearchTerm,
     categoryFilter,
     minPrice,
     maxPrice,
     inStock,
-    sortBy,
-    itemsPerPage,
-  ]);
-
-  // Reset page when filters change
-  useEffect(() => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    debouncedSearchTerm,
-    categoryFilter,
-    minPrice,
-    maxPrice,
-    inStock,
-    sortBy,
-    itemsPerPage,
   ]);
 
   const clearFilters = () => {

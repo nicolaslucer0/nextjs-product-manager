@@ -79,7 +79,7 @@ export default function Navbar() {
           </Link>
           <Link
             href="/cotiza-tu-telefono"
-            className={`font-medium transition-colors text-sm ${textClass}`}
+            className="btn btn-primary cta-loop text-sm"
           >
             Cotizá tu teléfono
           </Link>
@@ -246,11 +246,7 @@ export default function Navbar() {
               </Link>
               <Link
                 href="/cotiza-tu-telefono"
-                className={`font-medium transition-colors text-base py-3 px-4 rounded-lg ${
-                  theme === "light"
-                    ? "text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                    : "text-white/80 hover:text-white hover:bg-white/10"
-                }`}
+                className="btn btn-primary cta-loop w-full justify-center text-base"
                 onClick={() => setMenuOpen(false)}
               >
                 📱 Cotizá tu teléfono

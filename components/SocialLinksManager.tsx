@@ -99,7 +99,6 @@ export default function SocialLinksManager() {
             placeholder="https://instagram.com/tu_usuario"
             value={socialLinks.instagram}
             onChange={(e) => handleChange("instagram", e.target.value)}
-            required
           />
           <p className="text-xs text-white/40 mt-1">
             Ejemplo: https://instagram.com/neotech_store
@@ -120,7 +119,6 @@ export default function SocialLinksManager() {
             placeholder="+1234567890"
             value={socialLinks.whatsapp}
             onChange={(e) => handleChange("whatsapp", e.target.value)}
-            required
           />
           <p className="text-xs text-white/40 mt-1">
             Formato: +código_país número (Ejemplo: +56912345678)
@@ -141,7 +139,6 @@ export default function SocialLinksManager() {
             placeholder="https://tiktok.com/@tu_usuario"
             value={socialLinks.tiktok}
             onChange={(e) => handleChange("tiktok", e.target.value)}
-            required
           />
           <p className="text-xs text-white/40 mt-1">
             Ejemplo: https://tiktok.com/@neotech_oficial

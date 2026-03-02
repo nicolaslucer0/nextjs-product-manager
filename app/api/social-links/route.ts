@@ -10,12 +10,12 @@ export async function GET() {
     // Si no existe, crear uno por defecto
     if (!socialLinks) {
       socialLinks = await SocialLinks.create({
-        instagram: "https://instagram.com",
-        whatsapp: "+1234567890",
-        tiktok: "https://tiktok.com",
-        locationAddress: "Av. Principal 123",
-        locationCity: "Ciudad, País",
-        locationSchedule: "Lun - Sáb: 9AM - 8PM",
+        instagram: "",
+        whatsapp: "",
+        tiktok: "",
+        locationAddress: "",
+        locationCity: "",
+        locationSchedule: "",
         locationMap: "",
       });
     }

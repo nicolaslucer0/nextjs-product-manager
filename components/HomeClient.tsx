@@ -30,6 +30,26 @@ export default function HomeClient({ featuredProducts }: HomeClientProps) {
       .catch((err) => console.error("Error loading social links:", err));
   }, []);
 
+  const normalize = (value?: string) => (value || "").trim();
+  const instagramUrl = normalize(socialLinks?.instagram);
+  const tiktokUrl = normalize(socialLinks?.tiktok);
+  const whatsappRaw = normalize(socialLinks?.whatsapp);
+  const whatsappDigits = whatsappRaw.replace(/[^0-9]/g, "");
+
+  const hasInstagram =
+    Boolean(instagramUrl) &&
+    !["https://instagram.com", "http://instagram.com"].includes(
+      instagramUrl.toLowerCase(),
+    );
+  const hasTiktok =
+    Boolean(tiktokUrl) &&
+    !["https://tiktok.com", "http://tiktok.com"].includes(
+      tiktokUrl.toLowerCase(),
+    );
+  const hasWhatsapp =
+    Boolean(whatsappDigits) &&
+    !["1234567890", "0000000000"].includes(whatsappDigits);
+
   return (
     <div
       className={`min-h-screen ${
@@ -127,14 +147,17 @@ export default function HomeClient({ featuredProducts }: HomeClientProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Instagram */}
-            <a
-              href={socialLinks?.instagram || "https://instagram.com"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`card group transition-all duration-300 hover:scale-105 cursor-pointer ${
-                theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/10"
-              }`}
-            >
+            {hasInstagram && (
+              <a
+                href={instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`card group transition-all duration-300 hover:scale-105 cursor-pointer ${
+                  theme === "light"
+                    ? "hover:bg-gray-100"
+                    : "hover:bg-white/10"
+                }`}
+              >
               <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-purple-500 to-pink-500 mb-4 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <svg
                   className="w-8 h-8 text-white"
@@ -156,28 +179,26 @@ export default function HomeClient({ featuredProducts }: HomeClientProps) {
                   theme === "light" ? "text-gray-500" : "text-white/60"
                 }`}
               >
-                {socialLinks?.instagram
-                  ? `@${
-                      socialLinks.instagram.split("/").pop() || "neotech_store"
-                    }`
-                  : "@neotech_store"}
+                @{instagramUrl.split("/").pop() || "instagram"}
               </p>
               <p className="text-blue-400 text-sm font-medium group-hover:text-blue-300">
                 Síguenos →
               </p>
-            </a>
+              </a>
+            )}
 
             {/* WhatsApp */}
-            <a
-              href={`https://wa.me/${
-                socialLinks?.whatsapp?.replace(/[^0-9]/g, "") || "1234567890"
-              }`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`card group transition-all duration-300 hover:scale-105 cursor-pointer ${
-                theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/10"
-              }`}
-            >
+            {hasWhatsapp && (
+              <a
+                href={`https://wa.me/${whatsappDigits}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`card group transition-all duration-300 hover:scale-105 cursor-pointer ${
+                  theme === "light"
+                    ? "hover:bg-gray-100"
+                    : "hover:bg-white/10"
+                }`}
+              >
               <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-green-500 to-emerald-500 mb-4 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <svg
                   className="w-8 h-8 text-white"
@@ -199,22 +220,26 @@ export default function HomeClient({ featuredProducts }: HomeClientProps) {
                   theme === "light" ? "text-gray-500" : "text-white/60"
                 }`}
               >
-                {socialLinks?.whatsapp || "+1 234 567 890"}
+                {whatsappRaw}
               </p>
               <p className="text-green-400 text-sm font-medium group-hover:text-green-300">
                 Chatea con nosotros →
               </p>
-            </a>
+              </a>
+            )}
 
             {/* TikTok */}
-            <a
-              href={socialLinks?.tiktok || "https://tiktok.com"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`card group transition-all duration-300 hover:scale-105 cursor-pointer ${
-                theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/10"
-              }`}
-            >
+            {hasTiktok && (
+              <a
+                href={tiktokUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`card group transition-all duration-300 hover:scale-105 cursor-pointer ${
+                  theme === "light"
+                    ? "hover:bg-gray-100"
+                    : "hover:bg-white/10"
+                }`}
+              >
               <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-black to-gray-800 mb-4 flex items-center justify-center group-hover:scale-110 transition-transform border border-white/20">
                 <svg
                   className="w-8 h-8 text-white"
@@ -236,12 +261,7 @@ export default function HomeClient({ featuredProducts }: HomeClientProps) {
                   theme === "light" ? "text-gray-500" : "text-white/60"
                 }`}
               >
-                {socialLinks?.tiktok
-                  ? `@${
-                      socialLinks.tiktok.split("/").pop()?.replace("@", "") ||
-                      "neotech_oficial"
-                    }`
-                  : "@neotech_oficial"}
+                @{tiktokUrl.split("/").pop()?.replace("@", "") || "tiktok"}
               </p>
               <p
                 className={`text-sm font-medium ${
@@ -252,7 +272,8 @@ export default function HomeClient({ featuredProducts }: HomeClientProps) {
               >
                 Ver videos →
               </p>
-            </a>
+              </a>
+            )}
 
             {/* Ubicación */}
             {socialLinks?.locationMap ? (

@@ -25,7 +25,7 @@ export async function GET() {
     console.error("Error fetching social links:", error);
     return NextResponse.json(
       { error: "Error al obtener los enlaces" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -51,7 +51,7 @@ export async function PUT(req: NextRequest) {
     console.error("Error updating social links:", error);
     return NextResponse.json(
       { error: "Error al actualizar los enlaces" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

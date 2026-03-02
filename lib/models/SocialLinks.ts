@@ -33,7 +33,7 @@ const socialLinksSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 export type SocialLinksType = {

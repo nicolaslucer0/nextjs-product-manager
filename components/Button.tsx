@@ -70,4 +70,5 @@ export function ButtonLink({
   );
 }
 
+export { Button };
 export default Button;

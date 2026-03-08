@@ -1,9 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useTheme } from "@/contexts/ThemeContext";
 import { formatPrice } from "@/lib/utils";
 import ImagePlaceholder from "./ImagePlaceholder";
+import Button, { ButtonLink } from "./Button";
 import type { ProductType, Variant } from "@/lib/models/Product";
 
 type Props = {
@@ -12,9 +14,11 @@ type Props = {
 
 export default function ProductDetailClient({ product }: Props) {
   const { theme } = useTheme();
+  const searchParams = useSearchParams();
   const [selectedImage, setSelectedImage] = useState(product.images?.[0] || "");
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
   const [warrantyMessage, setWarrantyMessage] = useState("");
+  const [whatsappNumber, setWhatsappNumber] = useState("");
 
   // Cargar mensaje de garantía según la categoría
   useEffect(() => {
@@ -40,6 +44,25 @@ export default function ProductDetailClient({ product }: Props) {
     loadWarrantyMessage();
   }, [product.category]);
 
+  // Cargar número de WhatsApp
+  useEffect(() => {
+    const loadWhatsApp = async () => {
+      try {
+        const response = await fetch("/api/social-links");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.whatsapp) {
+            setWhatsappNumber(data.whatsapp);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading WhatsApp:", error);
+      }
+    };
+
+    loadWhatsApp();
+  }, []);
+
   // Agrupar variantes por tipo
   const colorVariants =
     product.variants?.filter((v) => v.type === "color") || [];
@@ -62,13 +85,76 @@ export default function ProductDetailClient({ product }: Props) {
     }
   };
 
-  const canjeHref = {
-    pathname: "/cotiza-tu-telefono",
-    query: {
-      productoId: product._id,
-      producto: product.title,
-      modelo: product.title,
-    },
+  // Construir URL para plan canje
+  const canjeHref = `/cotiza-tu-telefono?productoId=${product._id}&producto=${encodeURIComponent(product.title)}&modelo=${encodeURIComponent(product.title)}`;
+
+  // Obtener datos del plan canje desde URL
+  const getCanjeData = () => {
+    return {
+      modelo: searchParams.get("canjeModelo"),
+      almacenamiento: searchParams.get("canjeAlmacenamiento"),
+      bateria: searchParams.get("canjeBateria"),
+      estetica: searchParams.get("canjeEstetica"),
+      piezas: searchParams.get("canjePiezas"),
+      funciona: searchParams.get("canjeFunciona"),
+      precio: searchParams.get("canjePrecio"),
+    };
+  };
+
+  // Generar mensaje de WhatsApp
+  const generateWhatsAppMessage = () => {
+    const canjeData = getCanjeData();
+    const messageParts = [
+      "¡Hola! Me interesa comprar:\n",
+      `*${product.title}*`,
+      `Precio: $${formatPrice(finalPrice)}`,
+    ];
+
+    if (selectedVariant) {
+      messageParts.push(`Variante: ${selectedVariant.name}`);
+    }
+
+    // Agregar datos del plan canje si existen
+    if (canjeData.modelo) {
+      const canjeParts = [
+        "\n*Plan Canje:*",
+        `- Modelo a canjear: ${canjeData.modelo}`,
+      ];
+
+      if (canjeData.almacenamiento)
+        canjeParts.push(`- Almacenamiento: ${canjeData.almacenamiento}`);
+      if (canjeData.bateria)
+        canjeParts.push(`- Batería: ${canjeData.bateria}%`);
+      if (canjeData.estetica)
+        canjeParts.push(
+          `- Detalle estético: ${canjeData.estetica === "true" ? "Sí" : "No"}`,
+        );
+      if (canjeData.piezas)
+        canjeParts.push(
+          `- Piezas cambiadas: ${canjeData.piezas === "true" ? "Sí" : "No"}`,
+        );
+      if (canjeData.funciona)
+        canjeParts.push(
+          `- Funciona perfectamente: ${canjeData.funciona === "true" ? "Sí" : "No"}`,
+        );
+      if (canjeData.precio)
+        canjeParts.push(`- Precio estimado del canje: $${canjeData.precio}`);
+
+      messageParts.push(...canjeParts);
+    }
+
+    return encodeURIComponent(messageParts.join("\n"));
+  };
+
+  const handleWhatsAppClick = () => {
+    if (!whatsappNumber) {
+      alert("No se ha configurado un número de WhatsApp");
+      return;
+    }
+    const message = generateWhatsAppMessage();
+    const cleanNumber = whatsappNumber.replaceAll(/\D/g, "");
+    const whatsappUrl = `https://wa.me/${cleanNumber}?text=${message}`;
+    window.open(whatsappUrl, "_blank");
   };
 
   return (
@@ -208,14 +294,29 @@ export default function ProductDetailClient({ product }: Props) {
 
               {product.planCanje && (
                 <div className="mt-4">
-                  <Link
-                    href={canjeHref}
-                    className="btn btn-primary w-full sm:w-auto"
-                  >
+                  <ButtonLink href={canjeHref} className="w-full sm:w-auto">
                     Plan canje
-                  </Link>
+                  </ButtonLink>
                 </div>
               )}
+
+              {/* Botón Lo quiero! */}
+              <div className="mt-4">
+                <Button
+                  onClick={handleWhatsAppClick}
+                  disabled={!whatsappNumber}
+                  className="w-full sm:w-auto inline-flex items-center gap-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                  </svg>
+                  Lo quiero!
+                </Button>
+              </div>
             </div>
 
             {/* Selector de variantes de color */}

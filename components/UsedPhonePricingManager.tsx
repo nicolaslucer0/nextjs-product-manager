@@ -4,6 +4,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useToast } from "@/contexts/ToastContext";
 import { formatPrice } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import Button from "./Button";
 
 type UsedPhonePrice = {
   _id: string;
@@ -330,9 +331,9 @@ export default function UsedPhonePricingManager() {
         </div>
 
         <div className="flex gap-3">
-          <button onClick={save} disabled={saving} className="btn btn-primary">
+          <Button onClick={save} disabled={saving}>
             {submitLabel}
-          </button>
+          </Button>
           {(editingId ||
             modelName ||
             storage ||

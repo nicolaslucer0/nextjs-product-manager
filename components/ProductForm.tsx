@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/contexts/ToastContext";
 import ImageUploader from "./ImageUploader";
+import Button from "./Button";
 import { formatPrice } from "@/lib/utils";
 
 type Variant = {
@@ -617,11 +618,7 @@ export default function ProductForm({
       </div>
 
       <div className="border-t border-white/10 pt-6">
-        <button
-          className="btn btn-primary w-full md:w-auto"
-          type="submit"
-          disabled={loading}
-        >
+        <Button className="w-full md:w-auto" type="submit" disabled={loading}>
           {loading ? (
             <span className="flex items-center gap-2">
               <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
@@ -647,7 +644,7 @@ export default function ProductForm({
           ) : (
             "Crear Producto"
           )}
-        </button>
+        </Button>
       </div>
     </form>
   );

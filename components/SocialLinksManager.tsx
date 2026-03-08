@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Button from "./Button";
 import type { SocialLinksType } from "@/lib/models/SocialLinks";
 
 export default function SocialLinksManager() {
@@ -215,13 +216,9 @@ export default function SocialLinksManager() {
           </div>
         )}
 
-        <button
-          type="submit"
-          className="btn btn-primary w-full"
-          disabled={saving}
-        >
+        <Button type="submit" fullWidth disabled={saving}>
           {saving ? "Guardando..." : "💾 Guardar Cambios"}
-        </button>
+        </Button>
       </form>
     </div>
   );

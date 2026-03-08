@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/contexts/ToastContext";
+import Button from "@/components/Button";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -82,9 +83,10 @@ export default function LoginPage() {
             />
           </div>
 
-          <button
-            className="btn btn-primary w-full text-lg py-4"
+          <Button
+            className="text-lg py-4"
             type="submit"
+            fullWidth
             disabled={loading}
           >
             {loading ? (
@@ -110,7 +112,7 @@ export default function LoginPage() {
             ) : (
               "Iniciar Sesión"
             )}
-          </button>
+          </Button>
 
           <div className="text-center text-sm text-white/60">
             ¿No tienes cuenta?{" "}

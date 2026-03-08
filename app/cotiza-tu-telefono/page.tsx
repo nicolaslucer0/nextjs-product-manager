@@ -3,6 +3,7 @@
 import { formatPrice } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { ButtonLink } from "@/components/Button";
 
 type UsedPhonePrice = {
   _id: string;
@@ -384,17 +385,42 @@ export default function CotizaTuTelefonoPage() {
             />
 
             {estimatedPrice !== null && (
-              <div className="rounded-xl border border-green-400/30 bg-green-500/10 p-4 space-y-2">
-                <p className="text-sm text-green-300">Precio estimado</p>
-                <p className="text-3xl font-bold text-green-400">
-                  ${formatPrice(estimatedPrice)}
-                </p>
-                <p className="text-xs text-white/60">
-                  Para esta tabla solo se considera si tiene piezas cambiadas.
-                  Batería, estética y funcionamiento quedan como datos de
-                  referencia.
-                </p>
-              </div>
+              <>
+                <div className="rounded-xl border border-green-400/30 bg-green-500/10 p-4 space-y-2">
+                  <p className="text-sm text-green-300">Precio estimado</p>
+                  <p className="text-3xl font-bold text-green-400">
+                    ${formatPrice(estimatedPrice)}
+                  </p>
+                  <p className="text-xs text-white/60">
+                    Para esta tabla solo se considera si tiene piezas cambiadas.
+                    Batería, estética y funcionamiento quedan como datos de
+                    referencia.
+                  </p>
+                </div>
+
+                {selectedCanjeProduct && (
+                  <ButtonLink
+                    href={`/products/${selectedCanjeProductId}?canjeModelo=${encodeURIComponent(selectedModel)}&canjeAlmacenamiento=${encodeURIComponent(selectedStorage)}&canjeBateria=${batteryPercent}&canjeEstetica=${hasAestheticDetail}&canjePiezas=${hasChangedParts}&canjeFunciona=${worksPerfectly}&canjePrecio=${estimatedPrice}`}
+                    fullWidth
+                    className="inline-flex items-center justify-center gap-2"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 7l5 5m0 0l-5 5m5-5H6"
+                      />
+                    </svg>
+                    Continuar con la compra
+                  </ButtonLink>
+                )}
+              </>
             )}
 
             {isFormComplete && worksPerfectly === false && (

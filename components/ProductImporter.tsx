@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useToast } from "@/contexts/ToastContext";
+import Button from "./Button";
 
 type ImportResult = {
   success: boolean;
@@ -115,7 +116,7 @@ export default function ProductImporter() {
 
                 // Reset input
                 const input = document.getElementById(
-                  "file-input"
+                  "file-input",
                 ) as HTMLInputElement;
                 if (input) input.value = "";
 
@@ -216,10 +217,10 @@ PROD003	AirPods Pro	Accesorios	Apple	APP2023	100	249.99	Auriculares inalámbrico
             className="input flex-1"
             disabled={uploading}
           />
-          <button
+          <Button
             onClick={handleUpload}
             disabled={!file || uploading}
-            className="btn btn-primary px-6"
+            className="px-6"
           >
             {uploading ? (
               <span className="flex items-center gap-2">
@@ -244,7 +245,7 @@ PROD003	AirPods Pro	Accesorios	Apple	APP2023	100	249.99	Auriculares inalámbrico
             ) : (
               "📤 Importar"
             )}
-          </button>
+          </Button>
         </div>
         {file && !uploading && (
           <p className="text-sm text-white/60 mt-2">

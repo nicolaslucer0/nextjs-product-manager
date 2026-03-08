@@ -2,6 +2,7 @@
 import { useTheme } from "@/contexts/ThemeContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useEffect, useState } from "react";
+import Button from "./Button";
 
 type CategoryConfig = {
   _id: string;
@@ -137,13 +138,13 @@ export default function CategoryConfigManager({ categories }: Props) {
                           }`}
                         />
                         <div className="flex gap-2">
-                          <button
+                          <Button
                             onClick={() => handleSave(category)}
                             disabled={saving}
-                            className="btn btn-primary text-sm"
+                            className="text-sm"
                           >
                             {saving ? "Guardando..." : "Guardar"}
-                          </button>
+                          </Button>
                           <button
                             onClick={() => setEditingCategory(null)}
                             disabled={saving}

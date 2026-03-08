@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTheme } from "@/contexts/ThemeContext";
 import { formatPrice } from "@/lib/utils";
+import Button from "@/components/Button";
 import ImagePlaceholder from "@/components/ImagePlaceholder";
 import Pagination from "@/components/Pagination";
 
@@ -714,9 +715,7 @@ export default function ProductsClient({
                 <p className="text-white/60 mb-4">
                   Intenta ajustar los filtros de búsqueda
                 </p>
-                <button onClick={clearFilters} className="btn btn-primary">
-                  Limpiar filtros
-                </button>
+                <Button onClick={clearFilters}>Limpiar filtros</Button>
               </div>
             ) : (
               <>

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useToast } from "@/contexts/ToastContext";
+import Button, { ButtonLink } from "@/components/Button";
 import Link from "next/link";
 
 export default function RegisterPage() {
@@ -90,9 +91,9 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-3">
-              <Link href="/login" className="btn btn-primary w-full block">
+              <ButtonLink href="/login" fullWidth>
                 Ir a Iniciar Sesión
-              </Link>
+              </ButtonLink>
               <Link
                 href="/"
                 className="btn bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 w-full block"
@@ -191,8 +192,8 @@ export default function RegisterPage() {
                 </div>
               )}
 
-              <button
-                className="btn btn-primary w-full"
+              <Button
+                fullWidth
                 type="submit"
                 disabled={loading}
               >

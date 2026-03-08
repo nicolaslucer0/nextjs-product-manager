@@ -4,6 +4,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useToast } from "@/contexts/ToastContext";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import Button from "./Button";
 import CategoryConfigManager from "./CategoryConfigManager";
 import Pagination from "./Pagination";
 import ProductForm from "./ProductForm";
@@ -246,12 +247,12 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                   isAdmin ? "md:grid-cols-3" : "md:grid-cols-2"
                 } gap-4`}
               >
-                <button
+                <Button
                   onClick={() => {
                     setActiveTab("products");
                     setShowCreateProduct(true);
                   }}
-                  className="btn btn-primary flex items-center justify-center gap-2"
+                  className="flex items-center justify-center gap-2"
                 >
                   <svg
                     className="w-5 h-5"
@@ -267,7 +268,7 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                     />
                   </svg>
                   Crear Producto
-                </button>
+                </Button>
                 {isAdmin && (
                   <button
                     onClick={() => setActiveTab("users")}
@@ -385,12 +386,12 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                   <span className="hidden sm:inline">Eliminar Todos</span>
                   <span className="sm:hidden">Eliminar Todo</span>
                 </button>
-                <button
+                <Button
                   onClick={() => {
                     setShowCreateProduct(!showCreateProduct);
                     setEditingProduct(null);
                   }}
-                  className="btn btn-primary flex items-center justify-center gap-2 text-sm sm:text-base"
+                  className="flex items-center justify-center gap-2 text-sm sm:text-base"
                 >
                   {showCreateProduct || editingProduct ? (
                     <>
@@ -427,7 +428,7 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                       Crear Producto
                     </>
                   )}
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -507,12 +508,9 @@ export default function AdminDashboard({ products, users, stats }: Props) {
                   <p className="text-white/60 mb-4">
                     Comienza creando tu primer producto
                   </p>
-                  <button
-                    onClick={() => setShowCreateProduct(true)}
-                    className="btn btn-primary"
-                  >
+                  <Button onClick={() => setShowCreateProduct(true)}>
                     Crear Producto
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <>

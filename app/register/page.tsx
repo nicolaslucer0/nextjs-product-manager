@@ -46,7 +46,7 @@ export default function RegisterPage() {
       if (res.ok) {
         setIsSuccess(true);
         setMessage(
-          "¡Registro exitoso! Tu cuenta está pendiente de activación por un administrador. Te notificaremos cuando puedas iniciar sesión."
+          "¡Registro exitoso! Tu cuenta está pendiente de activación por un administrador. Te notificaremos cuando puedas iniciar sesión.",
         );
         showToast("¡Registro exitoso!", "success");
       } else {
@@ -192,11 +192,7 @@ export default function RegisterPage() {
                 </div>
               )}
 
-              <Button
-                fullWidth
-                type="submit"
-                disabled={loading}
-              >
+              <Button fullWidth type="submit" disabled={loading}>
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
                     <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
@@ -220,7 +216,7 @@ export default function RegisterPage() {
                 ) : (
                   "Registrarse"
                 )}
-              </button>
+              </Button>
 
               <div className="text-center text-sm text-gray-600">
                 ¿Ya tienes cuenta?{" "}

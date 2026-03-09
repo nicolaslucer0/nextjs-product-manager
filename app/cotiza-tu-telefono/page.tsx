@@ -20,6 +20,7 @@ type CanjeProduct = {
   description?: string;
   images: string[];
   planCanje?: boolean;
+  price: number;
 };
 
 export default function CotizaTuTelefonoPage() {
@@ -145,19 +146,6 @@ export default function CotizaTuTelefonoPage() {
       ),
     [rows],
   );
-
-  const modelPrices = useMemo(() => {
-    const priceMap: Record<string, number> = {};
-    rows.forEach((row) => {
-      if (
-        !priceMap[row.modelName] ||
-        row.basePrice < priceMap[row.modelName]
-      ) {
-        priceMap[row.modelName] = row.basePrice;
-      }
-    });
-    return priceMap;
-  }, [rows]);
 
   const storageOptions = useMemo(
     () =>
@@ -325,13 +313,16 @@ export default function CotizaTuTelefonoPage() {
                           </span>
                         )}
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="font-medium truncate">{product.title}</p>
                         {product.description ? (
                           <p className="text-xs text-white/60 line-clamp-2">
                             {product.description}
                           </p>
                         ) : null}
+                        <p className="text-sm font-semibold text-blue-400 mt-1">
+                          ${formatPrice(product.price)}
+                        </p>
                       </div>
                     </div>
                   </button>
@@ -371,7 +362,7 @@ export default function CotizaTuTelefonoPage() {
             <option value="">Seleccioná un modelo</option>
             {modelOptions.map((model) => (
               <option key={model} value={model}>
-                {model} - Desde ${formatPrice(modelPrices[model] || 0)}
+                {model}
               </option>
             ))}
           </select>

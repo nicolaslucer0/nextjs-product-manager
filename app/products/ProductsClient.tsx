@@ -741,7 +741,6 @@ export default function ProductsClient({
                     >
                       <Link
                         href={`/products/${product._id}`}
-                        scroll={false}
                         className="cursor-pointer"
                       >
                         {/* Imagen del producto */}

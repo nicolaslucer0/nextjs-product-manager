@@ -2,26 +2,10 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import { verifyToken } from "@/lib/auth";
-import { apiLimiter, writeLimiter, getIP } from "@/lib/ratelimit";
+import { writeLimiter, getIP } from "@/lib/ratelimit";
 
 export async function GET(req: Request) {
   try {
-    // Rate limiting para lectura
-    if (apiLimiter) {
-      try {
-        const ip = getIP(req);
-        const { success } = await apiLimiter.limit(ip);
-        if (!success) {
-          return NextResponse.json(
-            { error: "Demasiadas peticiones. Intenta de nuevo más tarde." },
-            { status: 429 },
-          );
-        }
-      } catch (error) {
-        console.error("Rate limiter unavailable in /api/products GET:", error);
-      }
-    }
-
     await connectDB();
 
     // Obtener parámetros de paginación y filtros
@@ -106,16 +90,23 @@ export async function GET(req: Request) {
     const total = skip + products.length + (hasNextPage ? 1 : 0);
     const totalPages = hasNextPage ? page + 1 : page;
 
-    return NextResponse.json({
-      products,
-      pagination: {
-        page,
-        limit: safeLimit,
-        total,
-        totalPages,
-        hasNextPage,
+    return NextResponse.json(
+      {
+        products,
+        pagination: {
+          page,
+          limit: safeLimit,
+          total,
+          totalPages,
+          hasNextPage,
+        },
       },
-    });
+      {
+        headers: {
+          "Cache-Control": "s-maxage=15, stale-while-revalidate=60",
+        },
+      },
+    );
   } catch (e: any) {
     if (e?.message === "Missing MONGODB_URI") {
       return NextResponse.json(

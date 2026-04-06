@@ -1,17 +1,7 @@
 import Link from "next/link";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, proxyImage } from "@/lib/utils";
 import { toggleFeatured, togglePlanCanje } from "@/app/admin/featuredActions";
 import { deleteProduct } from "@/app/admin/actions";
-
-type Variant = {
-  _id?: string;
-  id?: string;
-  name: string;
-  type: "color" | "storage";
-  price: number;
-  stock: number;
-  image: string;
-};
 
 type Product = {
   _id: string;
@@ -22,7 +12,6 @@ type Product = {
   price: number;
   stock: number;
   images: string[];
-  variants?: Variant[];
   featured?: boolean;
   planCanje?: boolean;
 };
@@ -105,7 +94,7 @@ export default function ProductTableRow({
         <div className="w-16 h-16 rounded-lg overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-white/5">
           {product.images?.length > 0 ? (
             <img
-              src={product.images[0]}
+              src={proxyImage(product.images[0])}
               alt={product.title}
               className="w-full h-full object-contain p-1"
             />
@@ -131,23 +120,6 @@ export default function ProductTableRow({
           <p className={`text-xs mt-1 line-clamp-2 ${mutedTextClasses}`}>
             {product.description}
           </p>
-          {product.variants && product.variants.length > 0 && (
-            <div className="flex gap-1 mt-1">
-              {product.variants.slice(0, 2).map((v) => (
-                <span
-                  key={v._id || v.id || v.name}
-                  className="text-xs px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400"
-                >
-                  {v.name}
-                </span>
-              ))}
-              {product.variants.length > 2 && (
-                <span className="text-xs text-white/40">
-                  +{product.variants.length - 2}
-                </span>
-              )}
-            </div>
-          )}
         </div>
       </td>
 

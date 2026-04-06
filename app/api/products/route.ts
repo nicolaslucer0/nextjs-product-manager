@@ -89,7 +89,7 @@ export async function GET(req: Request) {
     const skip = (page - 1) * safeLimit;
 
     const projection =
-      "title description category price stock images variants featured planCanje createdAt updatedAt";
+      "title description category price stock images featured planCanje createdAt updatedAt";
 
     // Ejecutar query con paginación sin countDocuments (más performante)
     const pageResults = await Product.find(query)

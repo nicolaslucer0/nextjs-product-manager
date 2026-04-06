@@ -16,16 +16,7 @@ import StatsCard from "./admin/StatsCard";
 import TabNavigation from "./admin/TabNavigation";
 import ProductTableRow from "./admin/ProductTableRow";
 import ProductFilters from "./admin/ProductFilters";
-
-type Variant = {
-  _id?: string;
-  id?: string;
-  name: string;
-  type: "color" | "storage";
-  price: number;
-  stock: number;
-  image: string;
-};
+import CategoryManager from "./admin/CategoryManager";
 
 type Product = {
   _id: string;
@@ -36,7 +27,6 @@ type Product = {
   price: number;
   stock: number;
   images: string[];
-  variants?: Variant[];
   featured?: boolean;
   planCanje?: boolean;
 };
@@ -68,7 +58,7 @@ export default function AdminDashboard({ products, users, stats }: Props) {
   const { theme } = useTheme();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<
-    "overview" | "products" | "users" | "social" | "import" | "config" | "used"
+    "overview" | "products" | "users" | "social" | "import" | "config" | "used" | "categories"
   >("products");
   const [showCreateProduct, setShowCreateProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -89,10 +79,14 @@ export default function AdminDashboard({ products, users, stats }: Props) {
   // Determinar si el usuario es admin basándose en si tiene acceso a usuarios
   const isAdmin = users.length > 0;
 
-  // Obtener categorías únicas
-  const categories = Array.from(
-    new Set(localProducts.map((p) => p.category).filter(Boolean)),
-  ).sort((a, b) => (a || "").localeCompare(b || ""));
+  // Categorías desde la API
+  const [categories, setCategories] = useState<string[]>([]);
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((data) => setCategories(data.map((c: { name: string }) => c.name)))
+      .catch(() => {});
+  }, []);
 
   // Filtrar productos según búsqueda y categoría
   const filteredProducts = localProducts.filter((product) => {
@@ -608,6 +602,13 @@ export default function AdminDashboard({ products, users, stats }: Props) {
         {activeTab === "config" && (
           <div className="space-y-6">
             <CategoryConfigManager categories={categories as string[]} />
+          </div>
+        )}
+
+        {/* Categories Tab */}
+        {activeTab === "categories" && (
+          <div className="space-y-6">
+            <CategoryManager />
           </div>
         )}
 

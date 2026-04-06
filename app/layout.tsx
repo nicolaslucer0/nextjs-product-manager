@@ -1,12 +1,14 @@
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import CartSidebar from "@/components/CartSidebar";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ToastProvider } from "@/contexts/ToastContext";
+import { CartProvider } from "@/contexts/CartContext";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata = {
-  title: "NeoTech - Product Manager",
-  description: "Next.js 16 + API Routes + Server Actions + MongoDB",
+  title: "NeoTech importados",
+  description: "Productos importados originales",
 };
 
 export default function RootLayout({
@@ -19,8 +21,11 @@ export default function RootLayout({
       <body suppressHydrationWarning className="bg-black transition-colors">
         <ThemeProvider>
           <ToastProvider>
-            <Navbar />
-            <main className="pt-20">{children}</main>
+            <CartProvider>
+              <Navbar />
+              <CartSidebar />
+              <main className="pt-20">{children}</main>
+            </CartProvider>
           </ToastProvider>
         </ThemeProvider>
         <SpeedInsights />

@@ -5,7 +5,8 @@ type TabType =
   | "social"
   | "import"
   | "config"
-  | "used";
+  | "used"
+  | "categories";
 
 type TabNavigationProps = {
   readonly activeTab: TabType;
@@ -45,6 +46,7 @@ export default function TabNavigation({
       count: stats.totalUsers,
       adminOnly: true,
     },
+    { id: "categories", label: "Categorías", icon: "🏷️" },
     { id: "social", label: "Redes Sociales", icon: "🌐" },
     { id: "used", label: "Cotización usados", icon: "📱" },
     { id: "import", label: "Importar Excel", icon: "📥" },

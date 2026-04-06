@@ -1,25 +1,13 @@
 import { Schema, model, models } from "mongoose";
 
-const VariantSchema = new Schema(
-  {
-    name: { type: String, required: true }, // e.g., "Rojo", "64GB"
-    type: { type: String, required: true }, // "color" o "storage"
-    price: { type: Number, default: 0 }, // Precio adicional de la variante
-    stock: { type: Number, default: 0 },
-    image: { type: String, default: "" }, // Imagen específica de la variante
-  },
-  { _id: true },
-);
-
 const ProductSchema = new Schema({
   externalId: { type: String, unique: true, sparse: true }, // ID del Excel
   title: { type: String, required: true },
   description: { type: String, default: "" },
   category: { type: String, default: "" }, // Categoría del producto
   price: { type: Number, default: 0 }, // Precio base
-  stock: { type: Number, default: 0 }, // Stock base (si no hay variantes)
+  stock: { type: Number, default: 0 },
   images: { type: [String], default: [] }, // Imágenes generales
-  variants: { type: [VariantSchema], default: [] }, // Variantes del producto
   featured: { type: Boolean, default: false }, // Producto destacado
   planCanje: { type: Boolean, default: false }, // Habilita botón de plan canje
   createdAt: { type: Date, default: Date.now },
@@ -38,15 +26,6 @@ ProductSchema.pre("save", function (next) {
   next();
 });
 
-export type Variant = {
-  _id: string;
-  name: string;
-  type: "color" | "storage";
-  price: number;
-  stock: number;
-  image: string;
-};
-
 export type ProductType = {
   _id: string;
   externalId?: string;
@@ -56,7 +35,6 @@ export type ProductType = {
   price: number;
   stock: number;
   images: string[];
-  variants: Variant[];
   featured?: boolean;
   planCanje?: boolean;
   createdAt: string;

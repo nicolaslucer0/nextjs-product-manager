@@ -30,7 +30,7 @@ async function main() {
     console.log("✅ Seeded admin:", adminEmail, adminPass);
   }
 
-  // Seed Products with Variants
+  // Seed Products
   const productsCount = await Product.countDocuments();
 
   if (productsCount === 0) {
@@ -45,53 +45,6 @@ async function main() {
           "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800",
           "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800&h=600",
         ],
-        variants: [
-          {
-            name: "Titanio Natural",
-            type: "color",
-            price: 0,
-            stock: 5,
-            image:
-              "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800",
-          },
-          {
-            name: "Titanio Azul",
-            type: "color",
-            price: 0,
-            stock: 4,
-            image:
-              "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800",
-          },
-          {
-            name: "Titanio Negro",
-            type: "color",
-            price: 0,
-            stock: 6,
-            image:
-              "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800",
-          },
-          {
-            name: "128GB",
-            type: "storage",
-            price: 0,
-            stock: 8,
-            image: "",
-          },
-          {
-            name: "256GB",
-            type: "storage",
-            price: 100,
-            stock: 5,
-            image: "",
-          },
-          {
-            name: "512GB",
-            type: "storage",
-            price: 200,
-            stock: 2,
-            image: "",
-          },
-        ],
       },
       {
         title: "MacBook Air M3",
@@ -103,46 +56,6 @@ async function main() {
           "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800",
           "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800",
         ],
-        variants: [
-          {
-            name: "Gris Espacial",
-            type: "color",
-            price: 0,
-            stock: 4,
-            image:
-              "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800",
-          },
-          {
-            name: "Plata",
-            type: "color",
-            price: 0,
-            stock: 2,
-            image:
-              "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800",
-          },
-          {
-            name: "Medianoche",
-            type: "color",
-            price: 0,
-            stock: 2,
-            image:
-              "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800",
-          },
-          {
-            name: "256GB SSD",
-            type: "storage",
-            price: 0,
-            stock: 5,
-            image: "",
-          },
-          {
-            name: "512GB SSD",
-            type: "storage",
-            price: 200,
-            stock: 3,
-            image: "",
-          },
-        ],
       },
       {
         title: "AirPods Pro 2",
@@ -152,16 +65,6 @@ async function main() {
         stock: 25,
         images: [
           "https://images.unsplash.com/photo-1606841837239-c5a1a4a07af7?w=800",
-        ],
-        variants: [
-          {
-            name: "Blanco",
-            type: "color",
-            price: 0,
-            stock: 25,
-            image:
-              "https://images.unsplash.com/photo-1606841837239-c5a1a4a07af7?w=800",
-          },
         ],
       },
       {
@@ -173,45 +76,6 @@ async function main() {
         images: [
           "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=800",
         ],
-        variants: [
-          {
-            name: "Gris Espacial",
-            type: "color",
-            price: 0,
-            stock: 3,
-            image:
-              "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=800",
-          },
-          {
-            name: "Plata",
-            type: "color",
-            price: 0,
-            stock: 3,
-            image:
-              "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=800",
-          },
-          {
-            name: "128GB",
-            type: "storage",
-            price: 0,
-            stock: 2,
-            image: "",
-          },
-          {
-            name: "256GB",
-            type: "storage",
-            price: 100,
-            stock: 2,
-            image: "",
-          },
-          {
-            name: "512GB",
-            type: "storage",
-            price: 200,
-            stock: 2,
-            image: "",
-          },
-        ],
       },
       {
         title: "Apple Watch Series 9",
@@ -222,51 +86,11 @@ async function main() {
         images: [
           "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=800",
         ],
-        variants: [
-          {
-            name: "Medianoche",
-            type: "color",
-            price: 0,
-            stock: 4,
-            image:
-              "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=800",
-          },
-          {
-            name: "Luz Estelar",
-            type: "color",
-            price: 0,
-            stock: 4,
-            image:
-              "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=800",
-          },
-          {
-            name: "Rojo",
-            type: "color",
-            price: 0,
-            stock: 4,
-            image:
-              "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=800",
-          },
-          {
-            name: "41mm",
-            type: "storage",
-            price: 0,
-            stock: 6,
-            image: "",
-          },
-          {
-            name: "45mm",
-            type: "storage",
-            price: 30,
-            stock: 6,
-            image: "",
-          },
-        ],
       },
     ];
 
     await Product.insertMany(sampleProducts);
-    console.log(`✅ Seeded ${sampleProducts.length} products with variants`);
+    console.log(`✅ Seeded ${sampleProducts.length} products`);
   } else {
     console.log(`Products already exist (${productsCount} products found)`);
   }

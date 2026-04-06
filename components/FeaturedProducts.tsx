@@ -2,7 +2,7 @@
 
 import { useTheme } from "@/contexts/ThemeContext";
 import Link from "next/link";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, proxyImage } from "@/lib/utils";
 import ImagePlaceholder from "./ImagePlaceholder";
 
 type Product = {
@@ -53,7 +53,7 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
               >
                 {product.images && product.images.length > 0 ? (
                   <img
-                    src={product.images[0]}
+                    src={proxyImage(product.images[0])}
                     alt={product.title}
                     className="w-full h-full object-contain p-2 transition-transform group-hover:scale-105"
                   />

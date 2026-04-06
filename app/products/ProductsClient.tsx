@@ -2,20 +2,12 @@
 import { useState, useEffect, useMemo, memo, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useTheme } from "@/contexts/ThemeContext";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, proxyImage } from "@/lib/utils";
 import Button from "@/components/Button";
 import ImagePlaceholder from "@/components/ImagePlaceholder";
 import Pagination from "@/components/Pagination";
-
-type Variant = {
-  _id?: string;
-  name: string;
-  type: "color" | "storage";
-  price: number;
-  stock: number;
-  image: string;
-};
+import { useCart } from "@/contexts/CartContext";
+import { useToast } from "@/contexts/ToastContext";
 
 type Product = {
   _id: string;
@@ -25,7 +17,7 @@ type Product = {
   price: number;
   stock: number;
   images: string[];
-  variants?: Variant[];
+  planCanje?: boolean;
 };
 
 type ProductsClientProps = {
@@ -215,11 +207,31 @@ const FilterContent = memo(
 
 FilterContent.displayName = "FilterContent";
 
+function AddToCartButton({ product }: { readonly product: Product }) {
+  const { addItem } = useCart();
+  const { showToast } = useToast();
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        addItem(product, 1);
+        showToast(`${product.title} agregado al carrito`, "success");
+      }}
+      className="mt-3 w-full py-2 px-4 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 bg-blue-500/20 text-blue-400 border border-blue-400/30 hover:bg-blue-500/30"
+    >
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
+      </svg>
+      Agregar al carrito
+    </button>
+  );
+}
+
 export default function ProductsClient({
   categories,
   totalProducts,
 }: ProductsClientProps) {
-  const { theme } = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -697,14 +709,15 @@ export default function ProductsClient({
               )}
             </div>
 
-            {loading ? (
+            {loading && (
               <div className="flex items-center justify-center py-20">
                 <div className="text-center">
                   <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent mb-4"></div>
                   <p className="text-white/60">Cargando productos...</p>
                 </div>
               </div>
-            ) : products.length === 0 ? (
+            )}
+            {!loading && products.length === 0 && (
               <div className="card text-center py-16">
                 <div className="w-24 h-24 rounded-full mx-auto mb-4 bg-white/5 flex items-center justify-center text-4xl">
                   📦
@@ -717,104 +730,84 @@ export default function ProductsClient({
                 </p>
                 <Button onClick={clearFilters}>Limpiar filtros</Button>
               </div>
-            ) : (
+            )}
+            {!loading && products.length > 0 && (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {products.map((product) => (
-                    <Link
+                    <div
                       key={product._id}
-                      href={`/products/${product._id}`}
-                      scroll={false}
-                      className="card hover:bg-white/10 transition-all group cursor-pointer"
+                      className="card hover:bg-white/10 transition-all group"
                     >
-                      {/* Imagen del producto */}
-                      <div className="bg-white/5 rounded-xl aspect-square mb-4 overflow-hidden">
-                        {product.images && product.images.length > 0 ? (
-                          <img
-                            src={product.images[0]}
-                            alt={product.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                          />
-                        ) : (
-                          <ImagePlaceholder size="md" />
-                        )}
-                      </div>
+                      <Link
+                        href={`/products/${product._id}`}
+                        scroll={false}
+                        className="cursor-pointer"
+                      >
+                        {/* Imagen del producto */}
+                        <div className="bg-white/5 rounded-xl aspect-square mb-4 overflow-hidden">
+                          {product.images && product.images.length > 0 ? (
+                            <img
+                              src={proxyImage(product.images[0])}
+                              alt={product.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            />
+                          ) : (
+                            <ImagePlaceholder size="md" />
+                          )}
+                        </div>
 
-                      {/* Info del producto */}
-                      <div>
-                        <h3 className="font-semibold text-lg mb-1 group-hover:text-blue-400 transition-colors">
-                          {product.title}
-                        </h3>
-                        <p className="text-sm text-white/60 mb-3 line-clamp-2">
-                          {product.description}
-                        </p>
+                        {/* Info del producto */}
+                        <div>
+                          <h3 className="font-semibold text-lg mb-1 group-hover:text-blue-400 transition-colors">
+                            {product.title}
+                          </h3>
+                          <p className="text-sm text-white/60 mb-3 line-clamp-2">
+                            {product.description}
+                          </p>
 
-                        {/* Variantes */}
-                        {product.variants && product.variants.length > 0 && (
-                          <div className="mb-3">
-                            <div className="flex flex-wrap gap-1">
-                              {product.variants
-                                .slice(0, 4)
-                                .map((variant, idx) => (
-                                  <span
-                                    key={variant._id || idx}
-                                    className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30"
-                                  >
-                                    {variant.type === "color" ? "🎨" : "💾"}{" "}
-                                    {variant.name}
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-2xl font-bold">
+                                ${formatPrice(product.price)}
+                              </div>
+                              <div className="text-sm text-white/50">
+                                {product.stock > 0 ? (
+                                  <span className="text-green-400 font-medium">
+                                    ✓ En stock ({product.stock})
                                   </span>
-                                ))}
-                              {product.variants.length > 4 && (
-                                <span
-                                  className={`text-xs px-2 py-1 ${
-                                    theme === "light"
-                                      ? "text-gray-500"
-                                      : "text-white/50"
-                                  }`}
-                                >
-                                  +{product.variants.length - 4}
-                                </span>
-                              )}
+                                ) : (
+                                  <span className="text-red-400 font-medium">
+                                    Sin stock
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        )}
 
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-2xl font-bold">
-                              ${formatPrice(product.price)}
+                            <div className="text-blue-400 group-hover:translate-x-1 transition-transform">
+                              <svg
+                                className="w-6 h-6"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 5l7 7-7 7"
+                                />
+                              </svg>
                             </div>
-                            <div className="text-sm text-white/50">
-                              {product.stock > 0 ? (
-                                <span className="text-green-400 font-medium">
-                                  ✓ En stock ({product.stock})
-                                </span>
-                              ) : (
-                                <span className="text-red-400 font-medium">
-                                  Sin stock
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="text-blue-400 group-hover:translate-x-1 transition-transform">
-                            <svg
-                              className="w-6 h-6"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M9 5l7 7-7 7"
-                              />
-                            </svg>
                           </div>
                         </div>
-                      </div>
-                    </Link>
+                      </Link>
+
+                      {/* Agregar al carrito */}
+                      {product.stock > 0 && (
+                        <AddToCartButton product={product} />
+                      )}
+                    </div>
                   ))}
                 </div>
 

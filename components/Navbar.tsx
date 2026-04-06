@@ -3,12 +3,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useCart } from "@/contexts/CartContext";
 
 export default function Navbar() {
   const [logged, setLogged] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { totalItems, setIsOpen: setCartOpen } = useCart();
 
   useEffect(() => {
     setLogged(Boolean(localStorage.getItem("token")));
@@ -91,6 +93,24 @@ export default function Navbar() {
               Administrar
             </Link>
           )}
+
+          {/* Cart - Desktop */}
+          <button
+            type="button"
+            onClick={() => setCartOpen(true)}
+            className={`relative p-2 rounded-lg hover:bg-opacity-10 transition-colors ${textClass}`}
+            aria-label="Carrito"
+            title="Carrito"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
+            </svg>
+            {totalItems > 0 && (
+              <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                {totalItems > 99 ? "99+" : totalItems}
+              </span>
+            )}
+          </button>
 
           {/* Theme Toggle - Desktop */}
           <button
@@ -251,6 +271,22 @@ export default function Navbar() {
               >
                 📱 Cotizá tu teléfono
               </Link>
+              <button
+                type="button"
+                onClick={() => { setMenuOpen(false); setCartOpen(true); }}
+                className={`font-medium transition-colors text-base py-3 px-4 rounded-lg flex items-center justify-between ${
+                  theme === "light"
+                    ? "text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                    : "text-white/80 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                <span>🛒 Carrito</span>
+                {totalItems > 0 && (
+                  <span className="bg-blue-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {totalItems > 99 ? "99+" : totalItems}
+                  </span>
+                )}
+              </button>
               {logged && (
                 <Link
                   href="/admin"

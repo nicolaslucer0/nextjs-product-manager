@@ -1,15 +1,20 @@
 import { connectDB } from "@/lib/db";
 import Product from "@/lib/models/Product";
+import Category from "@/lib/models/Category";
 import ProductsClient from "./ProductsClient";
 import { Suspense } from "react";
+
+export const revalidate = 60;
 
 export default async function ProductsPage() {
   try {
     await connectDB();
 
-    // Obtener solo las categorías únicas para los filtros
-    const categories = await Product.distinct("category");
-    const totalProducts = await Product.countDocuments();
+    const [categoryDocs, totalProducts] = await Promise.all([
+      Category.find().sort({ name: 1 }).lean(),
+      Product.countDocuments(),
+    ]);
+    const categories = categoryDocs.map((c: any) => c.name as string);
 
     return (
       <Suspense fallback={<div>Cargando...</div>}>

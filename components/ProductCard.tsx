@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { proxyImage } from "@/lib/utils";
 
 export default function ProductCard({ product }: { product: any }) {
   return (
@@ -7,7 +8,7 @@ export default function ProductCard({ product }: { product: any }) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {product.images?.[0] ? (
           <img
-            src={product.images[0]}
+            src={proxyImage(product.images[0])}
             alt={product.title}
             className="h-full w-full object-contain p-2"
           />

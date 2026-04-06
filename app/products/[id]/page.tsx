@@ -2,6 +2,8 @@ import { connectDB } from "@/lib/db";
 import Product, { ProductType } from "@/lib/models/Product";
 import ProductDetailClient from "@/components/ProductDetailClient";
 
+export const revalidate = 60;
+
 export default async function ProductDetail({
   params,
 }: {

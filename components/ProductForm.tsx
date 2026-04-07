@@ -4,6 +4,7 @@ import { useToast } from "@/contexts/ToastContext";
 import ImageUploader from "./ImageUploader";
 import Button from "./Button";
 import { proxyImage } from "@/lib/utils";
+import NumericInput from "./NumericInput";
 
 type Product = {
   _id?: string;
@@ -37,7 +38,6 @@ export default function ProductForm({
   const [planCanje, setPlanCanje] = useState(false);
   const [images, setImages] = useState<string[]>([]);
 
-  // Cargar datos del producto si está en modo edición
   useEffect(() => {
     if (product) {
       setTitle(product.title);
@@ -49,6 +49,8 @@ export default function ProductForm({
       setImages(product.images || []);
     }
   }, [product]);
+
+  const isEditing = product?._id;
 
   function handleImageUploaded(url: string) {
     setImages([...images, url]);
@@ -74,7 +76,6 @@ export default function ProductForm({
 
     try {
       const token = localStorage.getItem("token");
-      const isEditing = product?._id;
       const url = isEditing ? `/api/products/${product._id}` : "/api/products";
       const method = isEditing ? "PUT" : "POST";
 
@@ -91,26 +92,21 @@ export default function ProductForm({
         if (!isEditing) {
           setTitle("");
           setDescription("");
+          setCategory("");
           setPrice(0);
           setStock(0);
           setPlanCanje(false);
           setImages([]);
         }
         showToast(
-          isEditing
-            ? "Producto actualizado exitosamente"
-            : "Producto creado exitosamente",
+          isEditing ? "Producto actualizado" : "Producto creado",
           "success",
         );
-        if (onSuccess) {
-          onSuccess();
-        }
-        setTimeout(() => {
-          globalThis.location.reload();
-        }, 1000);
+        onSuccess?.();
+        setTimeout(() => globalThis.location.reload(), 1000);
       } else {
         const error = await res.json();
-        showToast(error.error || "Error al guardar el producto", "error");
+        showToast(error.error || "Error al guardar", "error");
       }
     } catch (error) {
       console.error("Error saving product:", error);
@@ -120,81 +116,97 @@ export default function ProductForm({
     }
   }
 
-  const isEditing = product?._id;
-
   return (
     <form onSubmit={submit} className="space-y-6">
-      <h3 className="text-2xl font-bold mb-6">
-        {isEditing ? "Editar Producto" : "Crear Nuevo Producto"}
-      </h3>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-bold">
+          {isEditing ? "Editar producto" : "Nuevo producto"}
+        </h3>
+        {isEditing && (
+          <span className="text-xs text-white/40 font-mono">{product._id}</span>
+        )}
+      </div>
 
-      {/* Información básica */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      {/* Sección 1: Datos principales */}
+      <fieldset className="space-y-4">
+        <legend className="text-sm font-semibold text-white/40 uppercase tracking-wider mb-2">
+          Información básica
+        </legend>
+
         <div>
           <label htmlFor="title" className="label">
-            Título del producto
+            Nombre del producto *
           </label>
           <input
             id="title"
             className="input"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Ej: iPhone 15 Pro"
+            placeholder="Ej: iPhone 15 Pro 256GB"
             required
           />
         </div>
-        <div>
-          <label htmlFor="category" className="label">
-            Categoría
-          </label>
-          <select
-            id="category"
-            className="input"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          >
-            <option value="">Sin categoría</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label htmlFor="price" className="label">
-            Precio ($)
+          <label htmlFor="description" className="label">
+            Descripción
           </label>
-          <input
-            id="price"
+          <textarea
+            id="description"
             className="input"
-            type="number"
-            step="0.01"
-            value={price}
-            onChange={(e) => setPrice(Number(e.target.value))}
-            placeholder="0.00"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            placeholder="Descripción corta del producto..."
           />
         </div>
-        <div>
-          <label htmlFor="stock" className="label">
-            Stock
-          </label>
-          <input
-            id="stock"
-            className="input"
-            type="number"
-            value={stock}
-            onChange={(e) => setStock(Number(e.target.value))}
-            placeholder="0"
-          />
-        </div>
-      </div>
 
-      <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-        <label className="flex items-center gap-3 cursor-pointer">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div>
+            <label htmlFor="category" className="label">
+              Categoría
+            </label>
+            <select
+              id="category"
+              className="input"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              <option value="">Sin categoría</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="price" className="label">
+              Precio USD *
+            </label>
+            <NumericInput
+              id="price"
+              className="input"
+              allowDecimals
+              value={price || ""}
+              onChange={(e) => setPrice(Number(e.target.value) || 0)}
+              placeholder="0.00"
+            />
+          </div>
+          <div>
+            <label htmlFor="stock" className="label">
+              Stock *
+            </label>
+            <NumericInput
+              id="stock"
+              className="input"
+              value={stock || ""}
+              onChange={(e) => setStock(Number(e.target.value) || 0)}
+              placeholder="0"
+            />
+          </div>
+        </div>
+
+        <label className="flex items-center gap-3 cursor-pointer rounded-lg border border-white/10 bg-white/5 p-3">
           <input
             type="checkbox"
             checked={planCanje}
@@ -202,109 +214,81 @@ export default function ProductForm({
             className="w-4 h-4 text-blue-600 rounded"
           />
           <div>
-            <p className="font-medium">Plan canje</p>
-            <p className="text-xs text-white/60">
-              Si está activo, se mostrará un botón en el detalle del producto
-              para ir al cotizador.
+            <p className="font-medium text-sm">Habilitar plan canje</p>
+            <p className="text-xs text-white/50">
+              Muestra el botón de cotización en el detalle del producto.
             </p>
           </div>
         </label>
-      </div>
+      </fieldset>
 
-      <div>
-        <label htmlFor="description" className="label">
-          Descripción
-        </label>
-        <textarea
-          id="description"
-          className="input"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={3}
-          placeholder="Describe el producto..."
-        />
-      </div>
+      {/* Sección 2: Imágenes */}
+      <fieldset className="space-y-4">
+        <legend className="text-sm font-semibold text-white/40 uppercase tracking-wider mb-2">
+          Imágenes
+        </legend>
 
-      {/* Imágenes del producto */}
-      <div>
         <ImageUploader
           onImageUploaded={handleImageUploaded}
           currentImages={images}
           maxImages={5}
-          label="Imágenes del producto"
+          label="Subí o pegá la URL de las imágenes"
         />
 
-        {/* Galería de imágenes cargadas */}
         {images.length > 0 && (
-          <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
             {images.map((img, index) => (
               <div
                 key={img}
-                className="relative group aspect-square rounded-lg overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center"
+                className="relative group aspect-square rounded-lg overflow-hidden bg-white/5 border border-white/10"
               >
                 <img
                   src={proxyImage(img)}
-                  alt={`Producto ${index + 1}`}
-                  className="w-full h-full object-contain p-2"
+                  alt={`Imagen ${index + 1}`}
+                  className="w-full h-full object-contain p-1"
                 />
                 <button
                   type="button"
                   onClick={() => removeImage(index)}
-                  className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
                 {index === 0 && (
-                  <div className="absolute bottom-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                  <span className="absolute bottom-1 left-1 bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded">
                     Principal
-                  </div>
+                  </span>
                 )}
               </div>
             ))}
           </div>
         )}
-      </div>
+      </fieldset>
 
-      <div className="border-t border-white/10 pt-6">
-        <Button className="w-full md:w-auto" type="submit" disabled={loading}>
+      {/* Submit */}
+      <div className="flex items-center gap-3 pt-2 border-t border-white/10">
+        <Button type="submit" disabled={loading || !title.trim()}>
           {loading ? (
             <span className="flex items-center gap-2">
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                  fill="none"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
               Guardando...
             </span>
           ) : isEditing ? (
-            "Actualizar Producto"
+            "Guardar cambios"
           ) : (
-            "Crear Producto"
+            "Crear producto"
           )}
         </Button>
+        {!loading && (
+          <span className="text-xs text-white/30">
+            {isEditing ? "Los cambios se aplicarán inmediatamente" : "El producto estará disponible en el catálogo"}
+          </span>
+        )}
       </div>
     </form>
   );

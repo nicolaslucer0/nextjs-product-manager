@@ -8,6 +8,16 @@ import {
   useCallback,
 } from "react";
 
+export type CanjeData = {
+  model: string;
+  storage: string;
+  battery: string;
+  aestheticDetail: boolean;
+  changedParts: boolean;
+  worksPerfectly: boolean;
+  discount: number; // monto que se descuenta del precio
+};
+
 export type CartItem = {
   _id: string;
   title: string;
@@ -16,6 +26,7 @@ export type CartItem = {
   quantity: number;
   stock: number;
   planCanje?: boolean;
+  canje?: CanjeData;
 };
 
 type CartContextType = {
@@ -26,6 +37,8 @@ type CartContextType = {
   ) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
+  applyCanje: (id: string, canje: CanjeData) => void;
+  removeCanje: (id: string) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -112,6 +125,18 @@ export function CartProvider({
     );
   }, []);
 
+  const applyCanje = useCallback((id: string, canje: CanjeData) => {
+    setItems((prev) =>
+      prev.map((i) => (i._id === id ? { ...i, canje } : i)),
+    );
+  }, []);
+
+  const removeCanje = useCallback((id: string) => {
+    setItems((prev) =>
+      prev.map((i) => (i._id === id ? { ...i, canje: undefined } : i)),
+    );
+  }, []);
+
   const clearCart = useCallback(() => {
     setItems([]);
   }, []);
@@ -122,7 +147,11 @@ export function CartProvider({
   );
 
   const totalPrice = useMemo(
-    () => items.reduce((sum, i) => sum + i.price * i.quantity, 0),
+    () =>
+      items.reduce((sum, i) => {
+        const unitPrice = i.canje ? Math.max(0, i.price - i.canje.discount) : i.price;
+        return sum + unitPrice * i.quantity;
+      }, 0),
     [items],
   );
 
@@ -132,13 +161,15 @@ export function CartProvider({
       addItem,
       removeItem,
       updateQuantity,
+      applyCanje,
+      removeCanje,
       clearCart,
       totalItems,
       totalPrice,
       isOpen,
       setIsOpen,
     }),
-    [items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice, isOpen],
+    [items, addItem, removeItem, updateQuantity, applyCanje, removeCanje, clearCart, totalItems, totalPrice, isOpen],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

@@ -1,12 +1,12 @@
 type TabType =
-  | "overview"
   | "products"
+  | "categories"
+  | "config"
   | "users"
   | "social"
-  | "import"
-  | "config"
   | "used"
-  | "categories";
+  | "import"
+  | "overview";
 
 type TabNavigationProps = {
   readonly activeTab: TabType;
@@ -39,6 +39,11 @@ export default function TabNavigation({
       icon: "📦",
       count: stats.totalProducts,
     },
+    { id: "categories", label: "Categorías", icon: "🏷️" },
+    { id: "config", label: "Configuración", icon: "⚙️" },
+    { id: "social", label: "Redes y contacto", icon: "🌐" },
+    { id: "used", label: "Cotización usados", icon: "📱" },
+    { id: "import", label: "Importar", icon: "📥" },
     {
       id: "users",
       label: "Usuarios",
@@ -46,11 +51,6 @@ export default function TabNavigation({
       count: stats.totalUsers,
       adminOnly: true,
     },
-    { id: "categories", label: "Categorías", icon: "🏷️" },
-    { id: "social", label: "Redes Sociales", icon: "🌐" },
-    { id: "used", label: "Cotización usados", icon: "📱" },
-    { id: "import", label: "Importar Excel", icon: "📥" },
-    { id: "config", label: "Configuración", icon: "⚙️" },
     { id: "overview", label: "Resumen", icon: "📊" },
   ];
 

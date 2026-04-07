@@ -1,9 +1,9 @@
 "use client";
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { formatPrice, proxyImage } from "@/lib/utils";
+import NumericInput from "./NumericInput";
 
 export default function CartSidebar() {
   const {
@@ -17,43 +17,6 @@ export default function CartSidebar() {
     setIsOpen,
   } = useCart();
   const { theme } = useTheme();
-  const [whatsappNumber, setWhatsappNumber] = useState("");
-
-  useEffect(() => {
-    const loadWhatsApp = async () => {
-      try {
-        const response = await fetch("/api/social-links");
-        if (response.ok) {
-          const data = await response.json();
-          if (data.whatsapp) setWhatsappNumber(data.whatsapp);
-        }
-      } catch (error) {
-        console.error("Error loading WhatsApp:", error);
-      }
-    };
-    loadWhatsApp();
-  }, []);
-
-  const handleCheckout = () => {
-    if (!whatsappNumber) {
-      alert("No se ha configurado un número de WhatsApp");
-      return;
-    }
-
-    const lines = ["¡Hola! Me interesa comprar:\n"];
-    items.forEach((item) => {
-      lines.push(
-        `- *${item.title}* x${item.quantity} — $${formatPrice(item.price * item.quantity)}`,
-      );
-    });
-    lines.push(`\n*Total: $${formatPrice(totalPrice)}*`);
-
-    const message = encodeURIComponent(lines.join("\n"));
-    const cleanNumber = whatsappNumber.replaceAll(/\D/g, "");
-    window.open(`https://wa.me/${cleanNumber}?text=${message}`, "_blank");
-    clearCart();
-    setIsOpen(false);
-  };
 
   if (!isOpen) return null;
 
@@ -92,18 +55,8 @@ export default function CartSidebar() {
             onClick={() => setIsOpen(false)}
             className={`p-1 rounded-lg transition-colors ${mutedClass} ${hoverBgClass}`}
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
@@ -123,7 +76,7 @@ export default function CartSidebar() {
               >
                 {/* Thumbnail */}
                 <div
-                  className={`w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center ${
+                  className={`w-16 h-16 rounded-lg overflow-hidden shrink-0 flex items-center justify-center ${
                     theme === "light" ? "bg-gray-100" : "bg-white/5"
                   }`}
                 >
@@ -153,9 +106,7 @@ export default function CartSidebar() {
                   <div className="flex items-center gap-2 mt-2">
                     <button
                       type="button"
-                      onClick={() =>
-                        updateQuantity(item._id, item.quantity - 1)
-                      }
+                      onClick={() => updateQuantity(item._id, item.quantity - 1)}
                       className={`w-7 h-7 rounded flex items-center justify-center text-sm font-bold transition-colors ${
                         theme === "light"
                           ? "bg-gray-200 hover:bg-gray-300 text-gray-700"
@@ -164,14 +115,11 @@ export default function CartSidebar() {
                     >
                       -
                     </button>
-                    <input
-                      type="number"
-                      min={1}
-                      max={item.stock}
+                    <NumericInput
                       value={item.quantity}
                       onChange={(e) => {
-                        const val = parseInt(e.target.value, 10);
-                        if (!isNaN(val) && val >= 1)
+                        const val = Number.parseInt(e.target.value, 10);
+                        if (!Number.isNaN(val) && val >= 1)
                           updateQuantity(item._id, val);
                       }}
                       className={`w-12 h-7 text-center text-sm rounded border ${
@@ -182,9 +130,7 @@ export default function CartSidebar() {
                     />
                     <button
                       type="button"
-                      onClick={() =>
-                        updateQuantity(item._id, item.quantity + 1)
-                      }
+                      onClick={() => updateQuantity(item._id, item.quantity + 1)}
                       disabled={item.quantity >= item.stock}
                       className={`w-7 h-7 rounded flex items-center justify-center text-sm font-bold transition-colors disabled:opacity-30 ${
                         theme === "light"
@@ -200,18 +146,8 @@ export default function CartSidebar() {
                       className="ml-auto text-red-400 hover:text-red-300 transition-colors"
                       title="Eliminar"
                     >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                     </button>
                   </div>
@@ -230,44 +166,13 @@ export default function CartSidebar() {
                 ${formatPrice(totalPrice)}
               </span>
             </div>
-            {(() => {
-              const canjeItem = items.find((i) => i.planCanje);
-              if (!canjeItem) return null;
-              const href = `/cotiza-tu-telefono?productoId=${canjeItem._id}&producto=${encodeURIComponent(canjeItem.title)}&modelo=${encodeURIComponent(canjeItem.title)}`;
-              return (
-                <Link
-                  href={href}
-                  onClick={() => setIsOpen(false)}
-                  className="w-full py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 bg-green-500/20 text-green-400 border border-green-400/30 hover:bg-green-500/30 transition-colors"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                    />
-                  </svg>
-                  Plan canje — {canjeItem.title}
-                </Link>
-              );
-            })()}
-            <button
-              type="button"
-              onClick={handleCheckout}
-              disabled={!whatsappNumber}
-              className="w-full btn btn-primary flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            <Link
+              href="/checkout"
+              onClick={() => setIsOpen(false)}
+              className="w-full btn btn-primary flex items-center justify-center gap-2"
             >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-              </svg>
-              Hacer pedido por WhatsApp
-            </button>
+              Finalizar compra
+            </Link>
             <button
               type="button"
               onClick={clearCart}

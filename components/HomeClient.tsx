@@ -105,7 +105,7 @@ export default function HomeClient({ featuredProducts }: HomeClientProps) {
                     : "bg-white text-black hover:bg-white/90"
                 }`}
               >
-                Explorar Productos
+                Ver productos
               </Link>
             </div>
           </div>
@@ -130,7 +130,7 @@ export default function HomeClient({ featuredProducts }: HomeClientProps) {
                 theme === "light" ? "text-gray-900" : "text-white"
               }`}
             >
-              Conecta con{" "}
+              Conectá con{" "}
               <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-purple-400">
                 nosotros
               </span>
@@ -140,7 +140,7 @@ export default function HomeClient({ featuredProducts }: HomeClientProps) {
                 theme === "light" ? "text-gray-600" : "text-white/60"
               }`}
             >
-              Síguenos en nuestras redes sociales y visítanos en nuestra tienda
+              Seguinos en nuestras redes sociales y visitanos en nuestra tienda
               física
             </p>
           </div>
@@ -180,7 +180,7 @@ export default function HomeClient({ featuredProducts }: HomeClientProps) {
                   @{instagramUrl.split("/").pop() || "instagram"}
                 </p>
                 <p className="text-blue-400 text-sm font-medium group-hover:text-blue-300">
-                  Síguenos →
+                  Seguinos →
                 </p>
               </a>
             )}
@@ -305,7 +305,7 @@ export default function HomeClient({ featuredProducts }: HomeClientProps) {
                     theme === "light" ? "text-gray-900" : "text-white"
                   }`}
                 >
-                  Visítanos
+                  Visitanos
                 </h3>
                 <p
                   className={`text-sm mb-1 ${
@@ -357,7 +357,7 @@ export default function HomeClient({ featuredProducts }: HomeClientProps) {
                     theme === "light" ? "text-gray-900" : "text-white"
                   }`}
                 >
-                  Visítanos
+                  Visitanos
                 </h3>
                 <p
                   className={`text-sm mb-1 ${

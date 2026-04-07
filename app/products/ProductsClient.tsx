@@ -8,6 +8,7 @@ import ImagePlaceholder from "@/components/ImagePlaceholder";
 import Pagination from "@/components/Pagination";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/contexts/ToastContext";
+import NumericInput from "@/components/NumericInput";
 
 type Product = {
   _id: string;
@@ -132,17 +133,17 @@ const FilterContent = memo(
           Rango de precio
         </label>
         <div className="grid grid-cols-2 gap-2">
-          <input
+          <NumericInput
             id="minPrice"
-            type="number"
+            allowDecimals
             className="input"
             placeholder="Mín"
             value={minPrice}
             onChange={(e) => onMinPriceChange(e.target.value)}
           />
-          <input
+          <NumericInput
             id="maxPrice"
-            type="number"
+            allowDecimals
             className="input"
             placeholder="Máx"
             value={maxPrice}
@@ -487,7 +488,7 @@ export default function ProductsClient({
         <div className="mb-8">
           <h1 className="text-5xl font-bold mb-3">Catálogo de Productos</h1>
           <p className="text-white/60 text-lg">
-            Explora nuestra colección completa ({totalProducts} productos)
+            Explorá nuestra colección completa ({totalProducts} productos)
           </p>
         </div>
 
@@ -726,7 +727,7 @@ export default function ProductsClient({
                   No se encontraron productos
                 </h3>
                 <p className="text-white/60 mb-4">
-                  Intenta ajustar los filtros de búsqueda
+                  Intentá ajustar los filtros de búsqueda
                 </p>
                 <Button onClick={clearFilters}>Limpiar filtros</Button>
               </div>
@@ -773,7 +774,7 @@ export default function ProductsClient({
                               <div className="text-sm text-white/50">
                                 {product.stock > 0 ? (
                                   <span className="text-green-400 font-medium">
-                                    ✓ En stock ({product.stock})
+                                    ✓ Disponible
                                   </span>
                                 ) : (
                                   <span className="text-red-400 font-medium">

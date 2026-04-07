@@ -4,6 +4,7 @@ import { formatPrice } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/Button";
+import NumericInput from "@/components/NumericInput";
 import { useCart } from "@/contexts/CartContext";
 
 type UsedPhonePrice = {
@@ -141,21 +142,29 @@ export default function CotizaTuTelefonoPage() {
     selectedTargetProduct,
   ]);
 
+  // Solo mostrar modelos cuyo precio base sea menor al precio del producto seleccionado
+  const affordableRows = useMemo(
+    () => selectedCanjeProduct
+      ? rows.filter((row) => row.basePrice < selectedCanjeProduct.price)
+      : rows,
+    [rows, selectedCanjeProduct],
+  );
+
   const modelOptions = useMemo(
     () =>
-      Array.from(new Set(rows.map((row) => row.modelName))).sort((a, b) =>
+      Array.from(new Set(affordableRows.map((row) => row.modelName))).sort((a, b) =>
         a.localeCompare(b),
       ),
-    [rows],
+    [affordableRows],
   );
 
   const storageOptions = useMemo(
     () =>
-      rows
+      affordableRows
         .filter((row) => row.modelName === selectedModel)
         .map((row) => row.storage)
         .sort((a, b) => a.localeCompare(b)),
-    [rows, selectedModel],
+    [affordableRows, selectedModel],
   );
 
   useEffect(() => {
@@ -188,11 +197,11 @@ export default function CotizaTuTelefonoPage() {
 
   const selectedRow = useMemo(
     () =>
-      rows.find(
+      affordableRows.find(
         (row) =>
           row.modelName === selectedModel && row.storage === selectedStorage,
       ) || null,
-    [rows, selectedModel, selectedStorage],
+    [affordableRows, selectedModel, selectedStorage],
   );
 
   const batteryValue = Number(batteryPercent);
@@ -231,8 +240,9 @@ export default function CotizaTuTelefonoPage() {
     message += `• Piezas cambiadas: ${hasChangedParts ? "Sí" : "No"}\n`;
     message += `• Funciona perfectamente: ${worksPerfectly ? "Sí" : "No"}\n`;
 
-    if (estimatedPrice !== null) {
-      message += `\n💰 *Precio estimado de toma:* $${formatPrice(estimatedPrice)}`;
+    if (estimatedPrice !== null && selectedCanjeProduct) {
+      const finalPrice = Math.max(0, selectedCanjeProduct.price - estimatedPrice);
+      message += `\n💰 *Precio con plan canje:* $${formatPrice(finalPrice)}`;
     }
 
     // Incluir otros productos del carrito
@@ -416,11 +426,8 @@ export default function CotizaTuTelefonoPage() {
               <label htmlFor="quote-battery" className="label">
                 4) Porcentaje de batería
               </label>
-              <input
+              <NumericInput
                 id="quote-battery"
-                type="number"
-                min="0"
-                max="100"
                 className="input"
                 value={batteryPercent}
                 onChange={(e) => setBatteryPercent(e.target.value)}
@@ -449,15 +456,16 @@ export default function CotizaTuTelefonoPage() {
             {estimatedPrice !== null && (
               <>
                 <div className="rounded-xl border border-green-400/30 bg-green-500/10 p-4 space-y-2">
-                  <p className="text-sm text-green-300">Precio estimado</p>
-                  <p className="text-3xl font-bold text-green-400">
-                    ${formatPrice(estimatedPrice)}
-                  </p>
-                  <p className="text-xs text-white/60">
-                    Para esta tabla solo se considera si tiene piezas cambiadas.
-                    Batería, estética y funcionamiento quedan como datos de
-                    referencia.
-                  </p>
+                  {selectedCanjeProduct && (
+                    <>
+                      <p className="text-sm text-green-300">
+                        Con plan canje, tu {selectedCanjeProduct.title} te queda en:
+                      </p>
+                      <p className="text-3xl font-bold text-green-400">
+                        ${formatPrice(Math.max(0, selectedCanjeProduct.price - estimatedPrice))}
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 {selectedCanjeProduct && (

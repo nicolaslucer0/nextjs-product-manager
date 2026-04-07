@@ -5,6 +5,7 @@ import { useToast } from "@/contexts/ToastContext";
 import { formatPrice } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import Button from "./Button";
+import NumericInput from "./NumericInput";
 
 type UsedPhonePrice = {
   _id: string;
@@ -293,10 +294,9 @@ export default function UsedPhonePricingManager() {
             <label htmlFor="used-base-price" className="label">
               Precio base
             </label>
-            <input
+            <NumericInput
               id="used-base-price"
-              type="number"
-              min="0"
+              allowDecimals
               className="input"
               value={basePrice}
               onChange={(e) => setBasePrice(e.target.value)}
@@ -308,10 +308,9 @@ export default function UsedPhonePricingManager() {
             <label htmlFor="used-changed-parts-price" className="label">
               Precio con piezas cambiadas
             </label>
-            <input
+            <NumericInput
               id="used-changed-parts-price"
-              type="number"
-              min="0"
+              allowDecimals
               className="input"
               value={changedPartsPrice}
               onChange={(e) => setChangedPartsPrice(e.target.value)}

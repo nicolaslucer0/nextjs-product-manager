@@ -8,7 +8,7 @@ import { formatPrice, proxyImage } from "@/lib/utils";
 import Button from "@/components/Button";
 import NumericInput from "@/components/NumericInput";
 import { useSiteConfig } from "@/lib/useDollarRate";
-import PaymentInfoBanner from "@/components/PaymentInfoBanner";
+
 import CanjeModal from "@/components/CanjeModal";
 
 export default function CheckoutPage() {
@@ -23,9 +23,11 @@ export default function CheckoutPage() {
   } = useCart();
   const { theme } = useTheme();
   const router = useRouter();
-  const { dollarRate, paymentMessage, shippingMessage } = useSiteConfig();
+  const { dollarRate, paymentMethods, shippingMethods } = useSiteConfig();
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [canjeModalFor, setCanjeModalFor] = useState<string | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState("");
+  const [selectedShipping, setSelectedShipping] = useState("");
 
   useEffect(() => {
     fetch("/api/social-links")
@@ -61,6 +63,8 @@ export default function CheckoutPage() {
       }
     });
     lines.push(`\n*Total: $${formatPrice(totalPrice)}*`);
+    if (selectedPayment) lines.push(`\n💳 *Método de pago:* ${selectedPayment}`);
+    if (selectedShipping) lines.push(`🚚 *Forma de envío:* ${selectedShipping}`);
 
     const message = encodeURIComponent(lines.join("\n"));
     const cleanNumber = whatsappNumber.replaceAll(/\D/g, "");
@@ -248,12 +252,73 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              <PaymentInfoBanner message={paymentMessage} />
-              <PaymentInfoBanner message={shippingMessage} icon="🚚" />
+              {paymentMethods.length > 0 && (
+                <div className="space-y-2">
+                  <p className={`text-sm font-medium flex items-center gap-2 ${textClass}`}>
+                    💳 Método de pago
+                  </p>
+                  <div className="space-y-1.5">
+                    {paymentMethods.map((method) => (
+                      <label
+                        key={method}
+                        className={`flex items-center gap-3 p-2.5 rounded-lg border cursor-pointer transition-colors ${
+                          selectedPayment === method
+                            ? theme === "light"
+                              ? "border-blue-400 bg-blue-50"
+                              : "border-blue-400 bg-blue-500/10"
+                            : `${borderClass} hover:${theme === "light" ? "bg-gray-50" : "bg-white/5"}`
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="payment"
+                          value={method}
+                          checked={selectedPayment === method}
+                          onChange={(e) => setSelectedPayment(e.target.value)}
+                          className="accent-blue-500"
+                        />
+                        <span className={`text-sm ${textClass}`}>{method}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {shippingMethods.length > 0 && (
+                <div className="space-y-2">
+                  <p className={`text-sm font-medium flex items-center gap-2 ${textClass}`}>
+                    🚚 Forma de envío
+                  </p>
+                  <div className="space-y-1.5">
+                    {shippingMethods.map((method) => (
+                      <label
+                        key={method}
+                        className={`flex items-center gap-3 p-2.5 rounded-lg border cursor-pointer transition-colors ${
+                          selectedShipping === method
+                            ? theme === "light"
+                              ? "border-blue-400 bg-blue-50"
+                              : "border-blue-400 bg-blue-500/10"
+                            : `${borderClass} hover:${theme === "light" ? "bg-gray-50" : "bg-white/5"}`
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="shipping"
+                          value={method}
+                          checked={selectedShipping === method}
+                          onChange={(e) => setSelectedShipping(e.target.value)}
+                          className="accent-blue-500"
+                        />
+                        <span className={`text-sm ${textClass}`}>{method}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <Button
                 onClick={handleWhatsAppCheckout}
-                disabled={!whatsappNumber}
+                disabled={!whatsappNumber || (paymentMethods.length > 0 && !selectedPayment) || (shippingMethods.length > 0 && !selectedShipping)}
                 fullWidth
                 className="inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >

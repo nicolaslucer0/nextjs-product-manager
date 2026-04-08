@@ -8,14 +8,14 @@ export async function GET() {
     await connectDB();
     let config = await SiteConfig.findOne().lean();
     if (!config) {
-      const created = await SiteConfig.create({ dollarRate: 0, paymentMessage: "", shippingMessage: "" });
+      const created = await SiteConfig.create({ dollarRate: 0, paymentMethods: [], shippingMethods: [] });
       config = created.toObject();
     }
     // Garantizar que campos nuevos siempre existan (docs creados antes de agregarlos)
     const response = {
       ...config,
-      paymentMessage: (config as any).paymentMessage ?? "",
-      shippingMessage: (config as any).shippingMessage ?? "",
+      paymentMethods: (config as any).paymentMethods ?? [],
+      shippingMethods: (config as any).shippingMethods ?? [],
     };
     return NextResponse.json(response, {
       headers: { "Cache-Control": "s-maxage=60, stale-while-revalidate=300" },
@@ -48,12 +48,12 @@ export async function PUT(request: NextRequest) {
       update.dollarRate = body.dollarRate;
     }
 
-    if (body.paymentMessage != null) {
-      update.paymentMessage = body.paymentMessage;
+    if (body.paymentMethods != null) {
+      update.paymentMethods = body.paymentMethods;
     }
 
-    if (body.shippingMessage != null) {
-      update.shippingMessage = body.shippingMessage;
+    if (body.shippingMethods != null) {
+      update.shippingMethods = body.shippingMethods;
     }
 
     if (Object.keys(update).length === 0) {

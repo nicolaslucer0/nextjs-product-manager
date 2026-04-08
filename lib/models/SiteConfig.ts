@@ -2,8 +2,8 @@ import { Schema, model, models } from "mongoose";
 
 const SiteConfigSchema = new Schema({
   dollarRate: { type: Number, default: 0 },
-  paymentMessage: { type: String, default: "" },
-  shippingMessage: { type: String, default: "" },
+  paymentMethods: { type: [String], default: [] },
+  shippingMethods: { type: [String], default: [] },
   updatedAt: { type: Date, default: Date.now },
 });
 
@@ -15,8 +15,8 @@ SiteConfigSchema.pre("save", function (next) {
 export type SiteConfigType = {
   _id: string;
   dollarRate: number;
-  paymentMessage: string;
-  shippingMessage: string;
+  paymentMethods: string[];
+  shippingMethods: string[];
   updatedAt: string;
 };
 

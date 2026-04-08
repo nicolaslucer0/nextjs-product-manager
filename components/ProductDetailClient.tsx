@@ -23,7 +23,7 @@ export default function ProductDetailClient({ product }: Props) {
   const [warrantyMessage, setWarrantyMessage] = useState("");
   const [cartQuantity, setCartQuantity] = useState(1);
   const { items, addItem, setIsOpen: openCart } = useCart();
-  const { dollarRate, paymentMessage, shippingMessage } = useSiteConfig();
+  const { dollarRate, paymentMethods, shippingMethods } = useSiteConfig();
   const { showToast } = useToast();
   const [showCanjeModal, setShowCanjeModal] = useState(false);
 
@@ -270,8 +270,8 @@ export default function ProductDetailClient({ product }: Props) {
 
             {/* Información complementaria */}
             <div className="space-y-3">
-              <PaymentInfoBanner message={paymentMessage} />
-              <PaymentInfoBanner message={shippingMessage} icon="🚚" />
+              <PaymentInfoBanner items={paymentMethods} title="Métodos de pago" />
+              <PaymentInfoBanner items={shippingMethods} title="Formas de envío" icon="🚚" />
               {warrantyMessage && (
                 <div className={`rounded-lg border p-4 flex gap-3 items-start ${
                   lightText

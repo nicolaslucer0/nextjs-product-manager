@@ -2,30 +2,15 @@
 import { useTheme } from "@/contexts/ThemeContext";
 
 type Props = {
-  readonly message: string;
+  readonly items: string[];
   readonly icon?: string;
+  readonly title: string;
 };
 
-/** Renders basic markdown: **bold**, *italic*, newlines */
-function renderMarkdown(text: string) {
-  const parts = text.split("\n");
-  return parts.map((line, i) => {
-    const formatted = line
-      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-      .replace(/\*(.+?)\*/g, "<em>$1</em>");
-    return (
-      <span key={i}>
-        {i > 0 && <br />}
-        <span dangerouslySetInnerHTML={{ __html: formatted }} />
-      </span>
-    );
-  });
-}
-
-export default function PaymentInfoBanner({ message, icon = "💳" }: Props) {
+export default function PaymentInfoBanner({ items, icon = "💳", title }: Props) {
   const { theme } = useTheme();
 
-  if (!message) return null;
+  if (!items || items.length === 0) return null;
 
   return (
     <div
@@ -36,12 +21,26 @@ export default function PaymentInfoBanner({ message, icon = "💳" }: Props) {
       }`}
     >
       <span className="text-lg shrink-0">{icon}</span>
-      <div
-        className={`text-sm leading-relaxed ${
-          theme === "light" ? "text-amber-800" : "text-amber-200"
-        }`}
-      >
-        {renderMarkdown(message)}
+      <div className="flex-1">
+        <p
+          className={`text-sm font-medium mb-1 ${
+            theme === "light" ? "text-amber-900" : "text-amber-100"
+          }`}
+        >
+          {title}
+        </p>
+        <ul
+          className={`text-sm leading-relaxed space-y-0.5 ${
+            theme === "light" ? "text-amber-800" : "text-amber-200"
+          }`}
+        >
+          {items.map((item) => (
+            <li key={item} className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-current opacity-40 shrink-0" />
+              {item}
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );

@@ -3,12 +3,12 @@ import { useState, useEffect } from "react";
 
 type SiteConfig = {
   dollarRate: number;
-  paymentMessage: string;
-  shippingMessage: string;
+  paymentMethods: string[];
+  shippingMethods: string[];
 };
 
 export function useSiteConfig() {
-  const [config, setConfig] = useState<SiteConfig>({ dollarRate: 0, paymentMessage: "", shippingMessage: "" });
+  const [config, setConfig] = useState<SiteConfig>({ dollarRate: 0, paymentMethods: [], shippingMethods: [] });
 
   useEffect(() => {
     fetch("/api/site-config")
@@ -16,8 +16,8 @@ export function useSiteConfig() {
       .then((data) => {
         setConfig({
           dollarRate: data?.dollarRate || 0,
-          paymentMessage: data?.paymentMessage || "",
-          shippingMessage: data?.shippingMessage || "",
+          paymentMethods: data?.paymentMethods || [],
+          shippingMethods: data?.shippingMethods || [],
         });
       })
       .catch(() => {});

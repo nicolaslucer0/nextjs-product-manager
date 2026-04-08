@@ -134,14 +134,35 @@ export default function ProductDetailClient({ product }: Props) {
 
             {/* Bloque de precio */}
             <div className={`rounded-xl p-5 ${lightText ? "bg-gray-50 border border-gray-200" : "bg-white/5 border border-white/10"}`}>
-              <div className="text-4xl font-bold">
-                USD ${formatPrice(product.price)}
-              </div>
-              {dollarRate > 0 && (
-                <p className={`text-lg mt-1 ${lightText ? "text-gray-500" : "text-white/50"}`}>
-                  ~${formatPrice(Math.round(product.price * dollarRate))} ARS
-                  <span className="text-xs ml-1">(precio estimado)</span>
-                </p>
+              {hasCanjeApplied ? (
+                <>
+                  <div className="flex items-baseline gap-3">
+                    <span className={`text-2xl line-through ${lightText ? "text-gray-400" : "text-white/40"}`}>
+                      USD ${formatPrice(product.price)}
+                    </span>
+                    <span className="text-4xl font-bold text-green-400">
+                      USD ${formatPrice(Math.max(0, product.price - cartItem!.canje!.discount))}
+                    </span>
+                  </div>
+                  {dollarRate > 0 && (
+                    <p className={`text-lg mt-1 ${lightText ? "text-gray-500" : "text-white/50"}`}>
+                      ~${formatPrice(Math.round(Math.max(0, product.price - cartItem!.canje!.discount) * dollarRate))} ARS
+                      <span className="text-xs ml-1">(precio estimado)</span>
+                    </p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="text-4xl font-bold">
+                    USD ${formatPrice(product.price)}
+                  </div>
+                  {dollarRate > 0 && (
+                    <p className={`text-lg mt-1 ${lightText ? "text-gray-500" : "text-white/50"}`}>
+                      ~${formatPrice(Math.round(product.price * dollarRate))} ARS
+                      <span className="text-xs ml-1">(precio estimado)</span>
+                    </p>
+                  )}
+                </>
               )}
               <div className="mt-3">
                 {product.stock > 0 ? (
